@@ -53,7 +53,7 @@ module.exports = function(app) {
         if (DEBUG & DEBUG_TRACE) console.log("plugin.start(%s)...", JSON.stringify(options));
 
         options.modules.forEach(module => {
-            if ((module.id = module.id.trim()) == "") { log.E("ignoring module '" + module.id + "' (missing 'id' property)"); return; }
+            if ((module.id = module.id.trim()) == "") { log.E("ignoring module '" + module.id + "' (missing 'id' property)", false); return; }
             module.device = module.device.trim(); if (module.device == "") { log.E("ignoring module '" + module.id + "' (missing 'device' property)"); return; }
             switch (module.device.split(':')[0]) {
                 case 'http': case 'https':
@@ -63,10 +63,10 @@ module.exports = function(app) {
                     if (host && port) {
                         module.connection = { state: false };
                         module.connection.socket = new net.createConnection(port, host, () => {
-                            if (DEBUG & DEBUG_DIALOG) log.N("TCP socket opened for module " + module.id);
+                            if (DEBUG & DEBUG_DIALOG) log.N("TCP socket opened for module " + module.id, false);
                             module.connection.state = true;
                             module.connection.socket.on('data', (buffer) => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("TCP data received from " + module.id + " [" + buffer.toString() + "]");
+                                if (DEBUG & DEBUG_DIALOG) log.N("TCP data received from " + module.id + " [" + buffer.toString() + "]", false);
                                 processTcpData(buffer.toString(), module)
                             });
                             module.connection.socket.on('close', () => {
@@ -75,7 +75,7 @@ module.exports = function(app) {
                             });
                         });
                     } else {
-                        log.E("ignoring module '" + module.id + "' (bad or missing port/hostname)");
+                        log.E("ignoring module '" + module.id + "' (bad or missing port/hostname)", false);
                     }
                     break;
                 case 'usb':
@@ -84,12 +84,12 @@ module.exports = function(app) {
                         module.connection = { state: false };
                         module.connection.serialport = new SerialPort(path);
                         module.connection.serialport.on('open', () => {
-                            if (DEBUG & DEBUG_DIALOG) log.N("serial port opened for module " + module.id);
+                            if (DEBUG & DEBUG_DIALOG) log.N("serial port opened for module " + module.id, false);
                             module.connection.state = true;
                             module.connection.parser = new ByteLength({ length: 1 });
                             module.connection.serialport.pipe(module.connection.parser);
                             module.connection.parser.on('data', (buffer) => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("serial data received from " + module.id + " [" + buffer.toString() + "]");
+                                if (DEBUG & DEBUG_DIALOG) log.N("serial data received from " + module.id + " [" + buffer.toString() + "]", false);
                                 processUsbData((buffer)?buffer.buffer[0]:null, module);
                             });
                             module.connection.serialport.on('close', () => {
@@ -98,18 +98,18 @@ module.exports = function(app) {
                             });
                         });
                     } else {
-                        log.E("ignoring module '" + module.id + "' (bad or missing device path)");
+                        log.E("ignoring module '" + module.id + "' (bad or missing device path)", false);
                     }
                     break;
                 default:
-                    log.E("ignoring module '" + module.id + "' (invalid communication protocol)");
+                    log.E("ignoring module '" + module.id + "' (invalid communication protocol)", false);
                     break;
             }
             module.channels.forEach(channel => { channel.key = module.id + "." + channel.id; });
         });
 
         var configuredModuleCount = options.modules.filter(m => (m.connection)).length;
-        log.N("monitoring " + configuredModuleCount + " switch bank" + ((configuredModuleCount == 1)?"":"s"));
+        log.N("operating " + configuredModuleCount + " relay module" + ((configuredModuleCount == 1)?"":"s"));
 
         // Write channel meta data to the SignalK tree so that presentation
         // applications can deploy it.
@@ -132,7 +132,7 @@ module.exports = function(app) {
                 var moduleStatus
                 module.channels.forEach(channel => {
                     var key = module.id + "." + channel.id;
-                    var stream = getStreamFromPath((channel.trigger == "")?("notifications.control." + key):channel.trigger);
+                    var stream = getStreamFromPath((channel.trigger == "")?(options.defaulttriggerpath + key):channel.trigger);
                     var swpath = "electrical.switches." + key + ".state";
                     var on = channel.on;
                     var off = channel.off; 

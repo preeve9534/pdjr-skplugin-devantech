@@ -1,7 +1,7 @@
-# signalk-rerelay
+# signalk-devantech
 
 Signal K interface to the
-[Robot Electronics](https://www.robot-electronics.co.uk)
+[Devantech](https://www.devantech.co.uk)
 range of general purpose relay modules.
 
 This project implements a plugin for the
@@ -11,12 +11,12 @@ Reading the
 [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
 section of the Signal K documentation may provide helpful orientation.
 
-__signalk-rerelay__ supports integration of consumer grade USB and IP operated
-relay modules from the UK company Robot Electronics into the Signal K domain.
-The plugin may also support relay modules from other suppliers which have
+__signalk-devantech__ supports integration of consumer grade USB and IP operated
+relay modules from the UK company Devantech into the Signal K domain.
+The plugin may also support relay modules from other manufacturers which have
 a similar design principle.
 Note that NMEA 2000 switchbank relays (and switches) are natively supported by
-Signal K and are not addressed by __signalk-rerelay__.
+Signal K and are not compatible with __signalk-devantech__.
 
 A connected relay can be operated directly by a state changes on a Signal K
 data key and the plugin allows easy integration with keys in the
@@ -24,11 +24,20 @@ data key and the plugin allows easy integration with keys in the
 The state of connected relays is tracked in the usual Signal K fashion through
 keys in the host server's ```electrical.switches.``` data tree.
 
+CAUTION. The relay modules available from Devantech are consumer grade
+electronic devices and are not a suitable choice for safety critical
+applications.
+There are aspects of their firmware design which seriously limit the extent
+to which error detection and operational integrity measures can be
+implemented.
+Given these limitations, the devices are inexpensive, well built and reliable:
+just be careful where and how you deploy them.
+
 ## Operating principle
 
 ### How are relay channels identified?
 
-__signalk-rerelay__ identifies each relay channel by a compound
+__signalk-devantech__ identifies each relay channel by a compound
 _relay-identifier_ made up of user-defined module and channel identifiers.
 
 For example, if a module is configured with id = 'wifi0' and has a relay
@@ -36,7 +45,7 @@ channel with id = '1', then the relay-identifier will be 'wifi0.1'.
 
 ### What key values are created by the plugin?
 
-__signalk-rerelay__ creates two key entries in the Signal K data store for each
+__signalk-devantech__ creates two key entries in the Signal K data store for each
 configured relay channel.
 
 The key __electrical.switches.__*relay-identifier*__.state__ are updated to
@@ -61,8 +70,8 @@ used by other agents to improve the legibility of their output.
  
 Each relay is operated in response to value changes on a single data key
 referred to as a _trigger_.
-__signalk-rerelay__ defaults to using a trigger path of
-__notifications.rerelay.__*relay-identifier* for each relay channel and
+__signalk-devantech__ defaults to using a trigger path of
+__notifications.control.__*relay-identifier* for each relay channel and
 interprets the presence of a notification on this key with a state other
 than 'normal' as ON.
 
@@ -71,29 +80,46 @@ basis in the plugin configuration.
 In particulr, the trigger path can be set to any Signal K key and the plugin
 will interpret a key value of 0 as OFF and non-zero as ON.
 
+### How is the state of module relay operation validated/reported?
+
+The stock firmware installed in the Robot Electronics relay modules is both
+limited and inconsistent in its state reporting capabilities.
+
+|Protocol|Command confirmation|Status reporting|
+|usb     |No                  |Module polling  |
+|tcp     |Yes                 |Channel polling |
+|http    |Yes                 |None            | 
+
+Placing a polling burden on the Signal K server is not desirable: ideally the
+module firmware needs enhancing to support automatic status reporting at some
+regular interval and always immediately on a state change.
+
+__signalk-devantech__ attempts to flag problems by checking the status of a
+channel immediately after a state change commmand is issued.  Inconsistencies
+result in an error message being written to the system log.
+
 ## System requirements
 
-__signalk-rerelay__ has no special installation requirements.
+__signalk-devantech__ has no special installation requirements.
 
 ## Installation
 
-Download and install __signalk-rerelay__ using the _Appstore_ link in your
+Download and install __signalk-devantech__ using the _Appstore_ link in your
 Signal K Node server console.
 The plugin can also be obtained from the 
-[project homepage](https://github.com/preeve9534/signalk-rerelay)
+[project homepage](https://github.com/preeve9534/signalk-devantech)
 and installed using
 [these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
 
 ## Configuration
 
-__signalk-rerelay__ is configured in the normal Signal K fashion by the JSON
-configuration file ```rerelay.conf``` located in the server's
+__signalk-devantech__ is configured in the normal Signal K fashion by the JSON
+configuration file ```devantech.conf``` located in the server's
 ```plugin-config-files``` directory.
-```rerelay.conf``` can be created and edited using a text editor or the
+```devantech.conf``` can be created and edited using a text editor or the
 Signal K configuration interface (see below).
 
 The general structure of the configuration properties is illustrated below. 
-
 ```
 Property                  Type      Required Default
 "configuration": {
@@ -102,13 +128,12 @@ Property                  Type      Required Default
     {
       "id":               string    Y        -
       "device":           string    Y        -
-      "pollinterval":     integer   N        *pollinterval*
       "statuscommand":    string    N        -
       "channels": [
         {
           "id":           string    Y        -
           "name":         string    N        *id*
-          "triggerpath"   string    N        'notifications.rerelay._module.id_._id_'
+          "triggerpath"   string    N        'notifications.devantech._module.id_._id_'
           "on":           string    Y        -
           "off":          string    Y        -
           "status":       string    N        -
@@ -120,9 +145,11 @@ Property                  Type      Required Default
 }
 ```
 
-By way of illustration, the following configuration file listing shows a
-definition for a USB-connected two-channel relay module (part no USB-RLY02)
-and a WiFi connected two-channel relay module (part number ESP32LR20).
+The following file listing shows a specimen configuration for a USB-connected
+two-channel relay module
+[USB-RLY02]()
+and a WiFi connected two-channel relay module
+[ESP32LR20]().
 ```
 {
   "enabled": true,
@@ -132,7 +159,7 @@ and a WiFi connected two-channel relay module (part number ESP32LR20).
       {
         "id": "usb0",
         "device": "usb:/dev/ttyACM0",
-        "statuscommand": "[",
+        "status": "[",
         "channels": [
           {
             "id": "1",
@@ -152,19 +179,21 @@ and a WiFi connected two-channel relay module (part number ESP32LR20).
       },
       {
         "id": "wifi0",
-        "device": "http://192.168.1.100",
+        "device": "net:192.168.1.100:6161",
         "channels": [
           {
             "id": "1",
             "name": "Wheelhouse table lamp",
-            "on": "/relay01-1",
-            "off": "/relay01-0",
+            "on": "SR 1 1",
+            "off": "SR 1 0",
+            "status": "GR 1"
           },
           {
             "id": "2",
             "name": "Wheelhouse down lights",
-            "on": "/relay02-1",
-            "off": "/relay02-0"
+            "on": "SR 2 1",
+            "off": "SR 2 0",
+            "status": "GR 2"
           }
         ]
       }
@@ -175,7 +204,7 @@ and a WiFi connected two-channel relay module (part number ESP32LR20).
 
 ### Initial configuration
 
-__signalk-rerelay__ can be configured through the Signal K Node server plugin
+__signalk-devantech__ can be configured through the Signal K Node server plugin
 configuration panel.
 Navigate to _Server->Plugin config_ and select the _Rerelay_ tab.
 
@@ -267,9 +296,8 @@ The principles discussed under the __on__ property apply here too.
 
 ## Usage
 
-__signalk-switchbank__ has no run-time usage requirement, but the state of the
-application - well its understanding of the host systems NMEA 2000 switchbanks
-can be monitored in the webapp.
+__signalk-devantech__ has no run-time usage requirement.
+
 ‰PNG
 
    IHDR         |˜Ïû   sBIT|dˆ   tEXtSoftware gnome-screenshotï¿>    IDATxœìÝwxTEÛÀáßÙÝì¦÷„4	½c¨

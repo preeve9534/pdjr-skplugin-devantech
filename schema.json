@@ -6,6 +6,11 @@
             "type": "number",
             "default": 5000
         },
+        "defaulttriggerpath": {
+            "title": "Default notification path for relay triggers",
+            "type": "string",
+            "default": "notifications.control."
+        },
         "modules" : {
             "title": "Relay modules",
             "type": "array",

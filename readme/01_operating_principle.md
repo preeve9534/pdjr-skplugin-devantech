@@ -36,7 +36,7 @@ used by other agents to improve the legibility of their output.
 Each relay is operated in response to value changes on a single data key
 referred to as a _trigger_.
 __signalk-devantech__ defaults to using a trigger path of
-__notifications.devantech.__*relay-identifier* for each relay channel and
+__notifications.control.__*relay-identifier* for each relay channel and
 interprets the presence of a notification on this key with a state other
 than 'normal' as ON.
 
