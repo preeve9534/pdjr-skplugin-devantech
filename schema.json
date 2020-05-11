@@ -1,0 +1,82 @@
+{
+    "type": "object",
+    "properties": {
+        "pollinterval": {
+            "title": "Status update poll interval",
+            "type": "number",
+            "default": 5000
+        },
+        "modules" : {
+            "title": "Relay modules",
+            "type": "array",
+            "default": [],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Module identifier",
+                        "type": "string",
+                        "default": ""
+                    },
+                    "device": {
+                        "title": "Module connection address",
+                        "type": "string",
+                        "default": ""
+                    },
+                    "statuscommand": {
+                        "title": "Status poll command",
+                        "type": "string",
+                        "default": ""
+                    }, 
+                    "channels": {
+                        "title": "Channels",
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "title": "Channel identifier",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "type": {
+                                    "title": "Channel type",
+                                    "type": "string",
+                                    "default": "relay",
+                                    "enum": [ "relay", "switch" ],
+                                    "enumNames": [ "relay", "switch" ]
+                                },
+                                "name": {
+                                    "title": "Channel name",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "trigger": {
+                                    "title": "Channel trigger path",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "on": {
+                                    "title": "ON command string",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "off": {
+                                    "title": "OFF command string",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "statusmask": {
+                                    "title": "Status mask",
+                                    "type": "number",
+                                    "default": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
