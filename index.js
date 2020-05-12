@@ -89,13 +89,14 @@ module.exports = function(app) {
                             module.connection.parser = new ByteLength({ length: 1 });
                             module.connection.serialport.pipe(module.connection.parser);
                             module.connection.parser.on('data', (buffer) => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("serial data received from " + module.id + " [" + buffer.toString() + "]", false);
-                                processUsbData((buffer)?buffer.buffer[0]:null, module);
+                                if (DEBUG & DEBUG_DIALOG) log.N("serial data received from " + module.id + " [" + buffer.readUInt8(0) + "]", false);
+                                processUsbData((buffer)?buffer.readUInt8(0):null, module);
                             });
                             module.connection.serialport.on('close', () => {
                                 if (DEBUG & DEBUG_DIALOG) log.N("serial port closed for " + module.id);
                                 module.connection.state = false;
                             });
+                            module.connection.serialport.write(module.statuscommand);
                         });
                     } else {
                         log.E("ignoring module '" + module.id + "' (bad or missing device path)", false);
@@ -127,37 +128,38 @@ module.exports = function(app) {
 
         unsubscribes = (options.modules || []).reduce((a, module) => {
             if (module.connection) {
+                var m = module;
                 var device = module.device;
                 var connection = module.connection;
-                var moduleStatus
+                var moduleStatusCommand = module.statuscommand;
                 module.channels.forEach(channel => {
-                    var key = module.id + "." + channel.id;
-                    var stream = getStreamFromPath((channel.trigger == "")?(options.defaulttriggerpath + key):channel.trigger);
-                    var swpath = "electrical.switches." + key + ".state";
-                    var on = channel.on;
-                    var off = channel.off; 
-                    var chStatus = channel.statuscommand;
+                    var c = channel;
+                    var key = m.id + "." + c.id;
+                    var stream = getStreamFromPath(((c.trigger) && (c.trigger != ""))?c.trigger:(options.defaulttriggerpath + key));
                     if (stream) {
                         a.push(stream.onValue(v => {
-                            switch (device.split(':',1)[0]) {
+                            console.log("Got a value");
+                            switch (m.device.split(':',1)[0]) {
                                 case 'http': case 'https':
                                     break;
                                 case 'tcp':
-                                    if (connection.state) {
-                                        connection.socket.write((v == 1)?on:off);
-                                        if (chStatus) connection.socket.write(chStatus);
+                                    if (m.connection.state) {
+                                        m.connection.socket.write((v == 1)?on:off);
+                                        if (c.statuscommand) m.connection.socket.write(c.statuscommand);
                                     }
                                     break;
                                 case 'usb':
-                                    if (connection.state) {
-                                        connection.serialport.write((v == 1)?chOn:chOff);
-                                        connection.serialport.write(module.statuscommand);
+                                    if ((m.connection) && (m.connection.state)) {
+                                        m.connection.serialport.write((v == 1)?c.on:c.off);
+                                        m.connection.serialport.write(m.statuscommand);
                                     }
                                     break;
                                 default:
                                     break;
                             }
-                            app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [{ "path": swpath, "value": v }] }] });
+                            app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
+                                { "path": "electrical.switches." + key + ".state", "value": v }
+                            ] }] });
                         }));
                     }
                 });
@@ -198,7 +200,7 @@ module.exports = function(app) {
     }
 
     function processUsbData(state, module) {
-        if (DEBUG & DEBUG_TRACE) console.log("processUsbData(%b,%s)...", state, module);
+        if (DEBUG & DEBUG_TRACE) console.log("processUsbData(%d,%s)...", state, module);
 
         if (state) {
             var deltaValues = [];
