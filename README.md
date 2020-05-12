@@ -1,295 +1,300 @@
-# signalk-switchbank
+# signalk-devantech
 
-Operate NMEA 2000 compliant switchbank relays from Signal K switch inputs or
-from Signal K notifications.
+Signal K interface to the
+[Devantech](https://www.devantech.co.uk)
+range of general purpose relay modules.
 
 This project implements a plugin for the
 [Signal K Node server](https://github.com/SignalK/signalk-server-node).
 
-Reading the [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
+Reading the
+[Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
 section of the Signal K documentation may provide helpful orientation.
 
-The primary purpose of __signalk-switchbank__ is to operate NMEA 2000 compliant
-switchbank relays in response to changes in NMEA 2000 switchbank channels.  The
-sole operating principle is the mapping of one or more input channel states
-onto an output channel state through the application of a user defined rule.
+__signalk-devantech__ supports integration of consumer grade USB and IP operated
+relay modules from the UK company Devantech into the Signal K domain.
+The plugin may also support relay modules from other manufacturers which have
+a similar design principle.
+Note that NMEA 2000 switchbank relays (and switches) are natively supported by
+Signal K and are not compatible with __signalk-devantech__.
 
-Rules are defined in the plugin configuration file and are must be expressed
-as propositions in disjunctive normal form (DNF).
+A connected relay can be operated directly by a state changes on a Signal K
+data key and the plugin allows easy integration with keys in the
+_electrical.switches._ and _notifications._ data trees.
+The state of connected relays is tracked in the usual Signal K fashion through
+keys in _electrical.switches._ data tree.
 
-In fact, input channels can be any key under ```electrical.switches...```
-which has a binary state (i.e. not just NMEA 2000 switchbanks) and any
-key under ```notifications...``` with one or more alarm states that
-correspond to an "ON" condition.
+CAUTION. The relay modules available from Devantech are consumer grade
+electronic devices and are not a suitable choice for safety critical
+applications.
+In particular, there are aspects of their firmware design which limit the
+extent to which error detection and operational integrity measures can be
+implemented.
+Given these limitations, the devices are inexpensive, well built and reliable:
+just be careful where and how you deploy them.
 
-Similarly, output can take the form of a PGN127502 Switchbank Control message
-(to change the state of a remote relay), or the insertion of an arbitrary key
-value into the server ```notifications...``` tree.
+## Operating principle
 
-The plugin can be configured through a conventional Signal K configuration
-screen.  For the purpose of exposition, the following examples illustrate some
-variations for a single rule in the raw JSON configuration file.
+### How are relay channels identified?
 
-Example 1 - operate the N2K relay on switchbank 10 channel 4 from the
-N2K switch on switchbank 0 channel 5.
+__signalk-devantech__ identifies each relay channel by a compound
+_relay-identifier_ made up of user-defined module and channel identifiers.
+
+For example, if a module is configured with id = 'wifi0' and has a relay
+channel with id = '1', then the relay-identifier will be 'wifi0.1'.
+
+### What key values are created by the plugin?
+
+__signalk-devantech__ creates two key entries in the Signal K data store for each
+configured relay channel.
+
+The key __electrical.switches.__*relay-identifier*__.state__ are updated to
+reflect the state of the identified relay.
+
+State information is updated when the plugin operates a relay and may be
+updated by polling relay module channel states at some user-defined
+interval.
+Polling places a load on the Signal K host which may be unacceptable in some
+installations and it is disabled by default.
+
+The key __electrical.switches.__*relay-identifier*__.meta__ is updated when
+the plugin starts with a structure of the form
 ```
-{
-  "description": "DISCHARGE PUMP",
-  "output": "(10,4)",
-  "input": [ "(0,5)" ]
-}
+{ "type": "relay", "name": "channel-name" }
 ```
+Where _channel-name_ is some arbitrary user-defined text.
+This information is used by the plugin to elaborate log messages and may be
+used by other agents to improve the legibility of their output.
 
-Example 2 - extends Example 1 to include a disjunction: the relay is
-now operated either by the switch OR by the presence of an 'alert'
-notification on the specified path.
-```
-{
-  "description": "Discharge pump",
-  "output": "(10,4)",
-  "input": "[ "(0,5)", "notifications.tanks.0.wasteWater.currentLevel:alert" ]
-}
-```
-This example illustrates that alternative inputs are simply listed as
-separate items in the "input" array, with each item being a clause
-in the resulting logic.  There is no arbitrary limit imposed on the
-number of clausal expressions.
+### How is a relay operated?
  
-Example 3 - extends Example 2 to include a conjunction: the relay is still
-operated by the presence of the notification, but only if the switch on
-switchbank 1 channel 0 is also ON.
-```
-{
-  "description": "Discharge pump",
-  "output": "(10,4)",
-  "input": "[ "(0,5)", "(1,0) notifications.tanks.0.wasteWater.currentLevel:alert" ]
-}
-```
-This example illustrates that inputs which must be simultaneously present
-are expressed as separate space-delimited terms within a clause.
+Each relay is operated in response to value changes on a single data key
+referred to as a _trigger_.
+__signalk-devantech__ defaults to using a trigger path of
+__notifications.control.__*relay-identifier* for each relay channel and
+interprets the presence of a notification on this key with a state other
+than 'normal' as ON.
 
-Example 4 - illustrates negation be re-writing Example 2 so that the relay
-is operated either by the switch connected to switchbank 0 channel 5 or
-when the notification state is not 'normal'.
-```
-{
-  "description": "Discharge pump",
-  "output": "(10,4)",
-  "input": "[ "(0,5)", "!notifications.tanks.0.wasteWater.currentLevel:normal" ]
-}
-```
+Pretty much all of the default behaviour can be overriden on a per-channel
+basis in the plugin configuration.
+In particulr, the trigger path can be set to any Signal K key and the plugin
+will interpret a key value of 0 as OFF and non-zero as ON.
 
-Example 5 - illustrates the output of a notification rather than a switchbank
-control.  In this case, a simple warning that two relay outputs are being operated
-simultaneously (remember here that NMEA relay outputs report their state in
-exactly the same way as switches and can thus be terms in the rule "input").
-```
-{
-  "description": "Pumping and flushing simultaneously",
-  "output": "notification.flushingandpumping:warning:The discharge pump and flush pump are both operating",
-  "input": [ "(10,4) (10,5)" ]
-}
-```
+### How is the state of module relay operation validated/reported?
+
+The stock firmware installed in the Robot Electronics relay modules is both
+limited and inconsistent in its state reporting capabilities.
+
+|Protocol|Command confirmation|Status reporting|
+|usb     |No                  |Module polling  |
+|tcp     |Yes                 |Channel polling |
+|http    |Yes                 |None            | 
+
+Placing a polling burden on the Signal K server is not desirable: ideally the
+module firmware needs enhancing to support automatic status reporting at some
+regular interval and always immediately on a state change.
+
+__signalk-devantech__ attempts to flag problems by checking the status of a
+channel immediately after a state change commmand is issued.  Inconsistencies
+result in an error message being written to the system log.
+
 ## System requirements
 
-__signalk-switchbank__ has no special installation requirements.
-
-Target relay switchbanks must respond to PGN127502 Switchbank Update messages.
-
-Be aware that the Signal K specification for switch handling is subject to
-developmental change.
-
-In the context of NMEA2000 switchbank integration, Signal K currently presents
-two paths for each identified switchbank channel:
-
-- electrical.switches._instance_._channel_.index reports just the channel
-address of the associated switch (i.e. bus and instance addresses are not
-reported);
-
-- electrical.switches._instance_._channel_.state reports the binary state
-of the associcated switch.
-
-It is, therefore, not currently possible to fully qualify an NMEA 2000 switch
-address from data reported in Signal K, other than by interpreting the Signal
-K path and __signalk-switchbank__ uses the path components _instance_ and
-_channel_ to derive switchbank address and channel address.
+__signalk-devantech__ has no special installation requirements.
 
 ## Installation
 
-Download and install __signalk-switchbank__ using the _Appstore_ link in your
+Download and install __signalk-devantech__ using the _Appstore_ link in your
 Signal K Node server console.
 The plugin can also be obtained from the 
-[project homepage](https://github.com/preeve9534/signalk-switchbank)
+[project homepage](https://github.com/preeve9534/signalk-devantech)
 and installed using
 [these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
 
 ## Configuration
 
-__signalk-switchbank__ is configured through the Signal K Node server plugin
+__signalk-devantech__ is configured in the normal Signal K fashion by the JSON
+configuration file ```devantech.conf``` located in the server's
+```plugin-config-files``` directory.
+```devantech.conf``` can be created and edited using a text editor or the
+Signal K configuration interface (see below).
+
+The general structure of the configuration properties is illustrated below. 
+```
+Property                  Type      Required Default
+"configuration": {
+  "pollinterval":         integer   N        0   
+  "modules": [
+    {
+      "id":               string    Y        -
+      "device":           string    Y        -
+      "statuscommand":    string    N        -
+      "channels": [
+        {
+          "id":           string    Y        -
+          "name":         string    N        *id*
+          "triggerpath"   string    N        'notifications.devantech._module.id_._id_'
+          "on":           string    Y        -
+          "off":          string    Y        -
+          "status":       string    N        -
+          "statusmask"    string    N        -
+        }
+      ]
+    }
+  ]
+}
+```
+
+The following file listing shows a specimen configuration for a USB-connected
+two-channel relay module
+[USB-RLY02]()
+and a WiFi connected two-channel relay module
+[ESP32LR20]().
+```
+{
+  "enabled": true,
+  "enableLogging": false,
+  "configuration": {
+    "modules": [
+      {
+        "id": "usb0",
+        "device": "usb:/dev/ttyACM0",
+        "status": "[",
+        "channels": [
+          {
+            "id": "1",
+            "name": "En-suite towel rail",
+            "on": "e",
+            "off": "p",
+            "statusmask": 1
+          },
+          {
+            "id": "2",
+            "name": "Dayhead towel rail",
+            "on": "f",
+            "off": "o",
+            "statusmask": 2
+          }
+        ]
+      },
+      {
+        "id": "wifi0",
+        "device": "net:192.168.1.100:6161",
+        "channels": [
+          {
+            "id": "1",
+            "name": "Wheelhouse table lamp",
+            "on": "SR 1 1",
+            "off": "SR 1 0",
+            "status": "GR 1"
+          },
+          {
+            "id": "2",
+            "name": "Wheelhouse down lights",
+            "on": "SR 2 1",
+            "off": "SR 2 0",
+            "status": "GR 2"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Initial configuration
+
+__signalk-devantech__ can be configured through the Signal K Node server plugin
 configuration panel.
-Navigate to _Server->Plugin config_ and select the _Switchbank_ tab.
+Navigate to _Server->Plugin config_ and select the _Rerelay_ tab.
 
 ![Plugin configuration panel](readme/screenshot.png)
 
-The configuration panel consist of a Signal K Node server widget containing
+The configuration panel consists of a Signal K Node server widget containing
 _Active_ and _Debug log_ options, a collection of expandable tabs which conceal
 specific configuration options, and finally a _Submit_ button which saves the
 plugin configuration, commits any changes, and starts or stops the plugin
 dependent upon the state of the _Active_ option.
 
-### Initial configuration
-
 You are advised to initially configure the plugin in the following way. 
 
 1. Check the _Active_ option.
 
-2. Follow the guidance in the 'Switchbanks' section below to tell the plugin
-about connected NMEA 2000 switchbanks, then click _Submit_ and use the
-__signalk-switchbank__ webapp to confirm that the displayed switchbank state
-accurately represents the system you are working on.
+2. Follow the guidance below to tell the plugin about connected relay modules,
+   then click _Submit_.
+   You can use a monitoring app (like __signalk-switchbank-monitor__  to confirm
+   the presence and operation of that the configured module channels.
 
-3. Follow the guidance in the 'Rules' section below to tell the plugin how to
-generate outputs.  If your outputs are NMEA 2000 switchbank relays and you
-defined these in (2) then you can check rule behaviour ta any time by clicking
-_Submit_ and referring to the webapp.
+The __Modules__ tab opens (and closes) a list which defines the modules that the
+plugin will adopt and operate.
+You can add and remove modules from the definition using the '+' and '-' list
+controls.
 
-### Switchbanks
+Each module is defined by the following properties.
 
-The _Switchbanks_ tab opens (and closes) a list which defines the NMEA 2000
-switchbanks that the plugin will monitor and operate.
+__id__  
+Required text property which identifies the module.
 
-Each switchbank is defined by the following properties.
+__device__  
+Required text property specifying the module access method and the module device
+address, separated by a colon character.
+The access method must be one of 'usb', 'http' or 'https', dependent upon how
+the relay module is connected to the host server.
 
-__Instance__  
-Required integer property which identifies a switchbank of interest by
-specifying its NMEA 2000 instance number in decimal.
+If the access method is 'usb', then the device address should be the path to
+the serial device which interfaces to the locally connected hardware.
+A typical value for the __device__ property might be 'usb:/dev/ttyACM0'.
 
-__Description__  
-An optional text property describing the switchbank. Including the device
-location, type and/or serial number here can be a helpful _aide-memoire_. 
+If the access method is 'http' or 'https', then the device address should be
+the hostname or IP address of the relay module on the network.
+A typical value for the __device__ property might be 'http://192.168.1.100:2122'
 
-__Channels__  
-Required list property defining switchbank channels.  Note that the NMEA
-2000 specification restricts this list to a maximum of 28 channels per
-switchbank, but physical devices usually implement fewer channels.  You can
-add and remove channels from the switchbank definition using the '+' and '-'
-list controls.
+__pollinterval__  
+Currently ignored, but reserved for future use.
 
-Each channel is defined by two properties:
+Within each __Module__ configuration, the _Channels_ tab opens (and closes) a
+list which defines the module's relay channels.
+You can add and remove channels from the definition using the '+' and '-' list
+controls.
 
-__Index__
-Required integer property specifying the number of the channel being defined
-in decimal.  Note that the this value should conform to NMEA 2000 conventions
-not Signal K (i.e. switchbank channel numbering starts at zero not one). 
+Each channel is defined by the following properties:
 
-__Description__
-An text property describing the channel.
+__id__
+Required text property which identifies the channel being defined.
 
-### Rules
+__name__  
+Optional (but recommended) text property describing the channel.
+This text is used by the plugin to elaborate log messages and may be used by
+other applications to improve the legibility of their output.
 
-Clicking on the _Rules_ tab opens a list of rules which entirely define the
-function of __signalk-switchbank__.  You can add and delete rules using the
-'+' and '-' rule controls.
+__trigger__
+Optional text property specifying a key path whose value should be mapped onto
+this channel's relay state.
+In general, this path must address a value which is either 0 (for OFF) or 1
+(for ON) and so is especially useful for mapping the value of some member of
+```electrical.switches.*.state```.
+The plugin supports the use of notifications as relay controls and if __trigger__
+is not defined its value will default internally to 'notifications.control._module-id_._channel-id_'.
+When a notification is used as a trigger, either implicitly or explicitly, the
+plugin recognises an absent or 'normal' notification as OFF and a notification
+with any other state value as ON.
 
-For any particular physical output there must be exactly one corresponding
-rules.  Each rule s defined by the following three properties.
+__off__
+A required text property which specifies the command string which must be
+written to __device__ in order to switch the relay off.
+If the module is connected by USB, then this will typically be some simple
+character or byte sequence that msut be written to the device port in order to
+switch this particular relay OFF.
+If the module is connected by HTTP or HTTPS, then this will typically be some
+URL which turns this particular relay OFF: the URL used here must be a relative
+URL which will be appended to the containing module's device address. 
 
-__Description__  
-Optional (but recommended) text describing the rule.  This text is used in
-some log messages of the form "Switching _description_ ON" so it is sensible
-to make this value identify the associated output.
-
-__Input__  
-A required list property which defines the Signal K paths which trigger the
-rule.
-
-This field actually specifies a logical proposition in disjunctive normal form
-(DNF) where each list entry contains a clause which, if true, will cause the
-input to be true (i.e. the clause states are OR'd together).
-
-Each clause contains a space-delimited list of terms which must all be true
-for the clause to be true (i.e. the term stated are AND'd together).
-
-A term must specify the key of either a Signal K switch input or a Signal K
-notification.  Signal K switch inputs are taken to be true when their
-state value is 1, otherwise false.  Signal K notifications are taken to be
-true when their state value is "alert", or when their state value is equal
-to that specified in the term definition (see below).
-
-A terms logical state can be inverted by prefixing the term with a '!'.
-
-_Specifying a Signal K switch input_
-
-Signal K switch inputs can be specified by Signal K path:
-```
-electrical.switches.10.1.state
-```
-or by an NMEA 2000 coded short form:
-```
-(10,0)
-```
-Note that because of differences in index base mentioned above, both of
-these terms refer to the same Signal K path.
-
-_Specifying a Signal K notification input_
-
-Signal K notifications inputs are specified by a term of the form ```path[:state]```
-where _path_ is the full path to the notification key and _state_ is the
-notification state that will be deemed true.  If _state_ is not specified, then
-the value 'normal' will be assumed and the whole term will be negated.
-
-Some exampls of input field values might help.
-
-```[ "(10,0)" ]``` - input is true when NMEA 2000 switchbank instance 10
-channel 0 is ON.
-
-```[ "!(10,0)" ]``` - input is true when NMEA 2000 switchbank instance 10
-channel 0 is OFF.
-
-```[ "(10,0)", "!(10,1)" ]``` - input is true when NMEA 2000 switchbank
-instance 10 channel 0 is ON and switchbank instance 10 channel 1 is OFF.
-
-```[ "(10,0)", "notification.switchmeon:alert" ]``` - input is true when NMEA
-2000 switchbank instance 10 channel 0 is ON and ```notification.switchmeon```
-has the state value 'alert'.
-
-__Output__
-
-A required text property which specifies the Signal K path which should be
-updated when the rule's input changes state.
-
-_Specifying an NMEA 2000 relay output_
-Signal K relay can be specified by Signal K path:
-```
-electrical.switches.10.1.state
-```
-or by an NMEA 2000 coded short form:
-```
-(10,0)
-```
-Note that because of differences in index base mentioned above, both of
-these terms refer to the same Signal K path.
-
-_Specifying a Signal K notification output_
-
-In this case, a value of the form ```path[:description[:state[:method]]]```
-must be used where _state_ is a valid notification state (e.g. 'normal'
-or 'alert'); _method_ is a space delimited list of notification methods
-(e.g. 'sound visual'); and _description_ is some arbitrary text for the
-notification.
-
-Some examples of output field values might be:
-
-"electrical.switches.3.6.state"
-
-"(3,1)"
-
-"notification.deckwash:Switching deckwash pump on"
-
-"notification.deckwash:Switching deckwash pump on:normal:visual sound"
+__on__
+A required text property which specifies the command string which must be
+written to __device__ in order to switch the relay on.
+The principles discussed under the __on__ property apply here too.
 
 ## Usage
 
-__signalk-switchbank__ has no run-time usage requirement, but the state of the
-application - well its understanding of the host systems NMEA 2000 switchbanks
-can be monitored in the webapp.
+__signalk-devantech__ has no run-time usage requirement.
+
