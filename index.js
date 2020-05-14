@@ -52,14 +52,14 @@ module.exports = function(app) {
 	plugin.start = function(options) {
         if (DEBUG & DEBUG_TRACE) console.log("plugin.start(%s)...", JSON.stringify(options));
 
+        options = validateOptions(options);
+
         options.modules.forEach(module => {
-            if ((module.id = module.id.trim()) == "") { log.E("ignoring module '" + module.id + "' (missing 'id' property)", false); return; }
-            module.device = module.device.trim(); if (module.device == "") { log.E("ignoring module '" + module.id + "' (missing 'device' property)"); return; }
-            switch (module.device.split(':')[0]) {
+            switch (module.cstring.split(':')[0]) {
                 case 'http': case 'https':
                     break;
                 case 'tcp':
-                    var [ dummy, host, port ] = module.device.split(':');
+                    var [ dummy, host, port ] = module.cstring.split(':');
                     if (host && port) {
                         module.connection = { state: false };
                         module.connection.socket = new net.createConnection(port, host, () => {
@@ -79,7 +79,7 @@ module.exports = function(app) {
                     }
                     break;
                 case 'usb':
-                    var [ dummy, path ] = module.device.split(':');
+                    var [ dummy, path ] = module.cstring.split(':');
                     if (path) {
                         module.connection = { state: false };
                         module.connection.serialport = new SerialPort(path);
@@ -129,17 +129,13 @@ module.exports = function(app) {
         unsubscribes = (options.modules || []).reduce((a, module) => {
             if (module.connection) {
                 var m = module;
-                var device = module.device;
-                var connection = module.connection;
-                var moduleStatusCommand = module.statuscommand;
                 module.channels.forEach(channel => {
                     var c = channel;
                     var key = m.id + "." + c.id;
                     var stream = getStreamFromPath(((c.trigger) && (c.trigger != ""))?c.trigger:(options.defaulttriggerpath + key));
                     if (stream) {
                         a.push(stream.onValue(v => {
-                            console.log("Got a value");
-                            switch (m.device.split(':',1)[0]) {
+                            switch (m.cstring.split(':',1)[0]) {
                                 case 'http': case 'https':
                                     break;
                                 case 'tcp':
@@ -173,6 +169,30 @@ module.exports = function(app) {
 		unsubscribes.forEach(f => f());
 		unsubscribes = [];
 	}
+
+    function validateOptions(options) {
+        var retval = options;
+        const mF = [ 'id', 'cstring', 'description', 'statuscommand' ];
+        const mR = [ 'id', 'cstring' ];
+        const cF = [ 'id', 'index', 'on', 'off', 'name', 'statusmask', 'trigger' ];
+        const cR = [ 'id', 'index', 'on', 'off' ];
+        
+        options.modules = options.modules.reduce((a,m) => {
+            var retval = true;
+            mF.forEach(k => { m[k] = (m[k])?m[k].trim():null; if (m[k] == "") m[k] = null; });
+            mR.forEach(k => { if (!m[k]) { log.E("ignoring module '" + m.id + "' (missing '" + k + "' property)", false); retval = false; } });
+            m.channels = m.channels.reduce((a,c) => {
+                var retval = true;
+                cF.forEach(k => { c[k] = (c[k])?c[k].trim():null; if (c[k] == "") c[k] = null; });
+                cR.forEach(k => { if (!c[k]) { log.E("ignoring channel '" + c.id + "' (missing '" + k + "' property)", false); retval = false; } });
+                if (retval) a.push(c);
+                return(a); 
+            },[]);
+            if (retval) a.push(m);
+            return(a);
+        },[]);
+        return(options);
+    }
 
     /**
      * getStreamFromPath returns a data stream for a specified <path>. The

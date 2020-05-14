@@ -1,81 +1,60 @@
 {
     "type": "object",
     "properties": {
-        "pollinterval": {
-            "title": "Status update poll interval",
-            "type": "number",
-            "default": 5000
-        },
-        "defaulttriggerpath": {
-            "title": "Default notification path for relay triggers",
-            "type": "string",
-            "default": "notifications.control."
-        },
+        "defaulttriggerpath": { "title": "Default notification path for relay triggers", "type": "string", "default": "notifications.control." },
         "modules" : {
             "title": "Relay modules",
             "type": "array",
             "default": [],
             "items": {
                 "type": "object",
+                "required": [ "id", "cstring", "channels" ],
                 "properties": {
-                    "id": {
-                        "title": "Module identifier",
-                        "type": "string",
-                        "default": ""
-                    },
-                    "device": {
-                        "title": "Module connection address",
-                        "type": "string",
-                        "default": ""
-                    },
-                    "statuscommand": {
-                        "title": "Status poll command",
-                        "type": "string",
-                        "default": ""
-                    }, 
+                    "id": { "title": "Identifier", "type": "string" },
+                    "cstring": { "title": "Connection string", "type": "string" },
+                    "description": { "title": "Description", "type": "string" },
+                    "statuscommand": { "title": "Status poll command", "type": "string" }, 
                     "channels": {
                         "title": "Channels",
                         "type": "array",
                         "default": [],
                         "items": {
                             "type": "object",
+                            "required": [ "id", "index", "on", "off" ],
                             "properties": {
-                                "id": {
-                                    "title": "Channel identifier",
-                                    "type": "string",
-                                    "default": ""
-                                },
-                                "type": {
-                                    "title": "Channel type",
-                                    "type": "string",
-                                    "default": "relay",
-                                    "enum": [ "relay", "switch" ],
-                                    "enumNames": [ "relay", "switch" ]
-                                },
-                                "name": {
-                                    "title": "Channel name",
-                                    "type": "string",
-                                    "default": ""
-                                },
-                                "trigger": {
-                                    "title": "Channel trigger path",
-                                    "type": "string",
-                                    "default": ""
-                                },
-                                "on": {
-                                    "title": "ON command string",
-                                    "type": "string",
-                                    "default": ""
-                                },
-                                "off": {
-                                    "title": "OFF command string",
-                                    "type": "string",
-                                    "default": ""
-                                },
-                                "statusmask": {
-                                    "title": "Status mask",
-                                    "type": "number",
-                                    "default": 0
+                                "id": { "title": "Identifier", "type": "string" },
+                                "index": { "title": "Index", "type": "string" },
+                                "on": { "title": "ON", "type": "string" },
+                                "off": { "title": "OFF", "type": "string", "default": "" },
+                                "name": { "title": "Channel name", "type": "string", "default": "" },
+                                "triggertype": { "title": "Trigger type", "type": "string", "enum": [ "notification", "other" ], "default": "notification" }
+                            },
+                            "required": [ "triggertype" ],
+                            "dependencies": {
+                                "triggertype": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "triggertype": { "enum": [ "notification" ] },
+                                                "triggeroption": {
+                                                    "title": "Notification ON states",
+                                                    "type": "string",
+                                                    "enum": [ "normal", "alert", "alarm", "emergency" ],
+                                                    "default": "alert"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "properties": {
+                                                "triggertype": { "enum": [ "other" ] },
+                                                "triggeroption": {
+                                                    "title": "Trigger key",
+                                                    "type": "string",
+                                                    "default": ""
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
