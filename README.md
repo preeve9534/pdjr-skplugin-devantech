@@ -156,7 +156,8 @@ behaviour of the plugin.
 The default value looks like this:
 ```
     "global": {
-        "defaultnotificationpath": ".notifications.control"
+        "defaultnotificationpath": ".notifications.control",
+        "defaultnotificationonstates": [ "alert", "alarm", "emergency" ] 
     }
 ```
 
