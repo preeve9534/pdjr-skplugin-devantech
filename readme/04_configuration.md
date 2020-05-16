@@ -47,7 +47,7 @@ supported communication protocols and associated operating commands.
 Required.
 Defaults to a collection of definitions for each of the supported Devantech
 relay modules.
-The default value begins with this snippet:
+Consider the following example:
 ```
     "devices": [
         {
@@ -58,24 +58,24 @@ The default value begins with this snippet:
                     "id": "usb",
                     "status": "[",
                     "commands": [
-                        {
-                            "channel": 1,
-                            "on": "e",
-                            "off": "o"
-                        },
-                        {
-                            "channel": 2,
-                            "on": "f",
-                            "off": "p"
-                        }
+                        { "channel": 1, "on": "e", "off": "o" },
+                        { "channel": 2, "on": "f", "off": "p" }
                     ]
                 }
             ]
         },
         {
-            "id": "USB-RELAY04",
-            ...
-            ...
+            "id": "ETH-RELAY04",
+            "size": 4,
+            "protocols": [
+                {
+                    "id": "tcp",
+                    "commands": [
+                        { "channel": 0, "on": "ON {c}", "off": "OFF {c}" }
+                    ]
+                }
+            }
+    ]
 ```
 
 Each _device_ object is defined by the following properties.
@@ -110,10 +110,10 @@ There are two possibilites:
 
 1. the _commands_ array contains a single _command_ object with a __channel__
    property value of zero that provides a pattern for the commands to be used
-   for all channels;
+   for all channels (see device 'ETH-RELAY04' in the example);
 2. the _commands_array contains a collection of _command_ objects, one for each
    relay channel, which give separate commands for operating each of the
-   device's relay channels.
+   device's relay channels (see device 'USB-RELAY02' in the example).
 
 A _command_ object is defined by the following properties.
 
@@ -127,18 +127,20 @@ Required.
 No default.
 
 __on__ specifies the command that should be issued to switch the relay channel
-ON.
-A wildcard command (used if __channel__ equals 0) might be "ON {c}".
+or channels ON.
 Required.
 No default.
 
 __off__ specifies the command that should be issued to switch the relay channel
-OFF.
-A wildcard command (used if __channel__ equals 0) might be "OFF {c}".
+or channels OFF.
 Required.
 No default.
 
 ### Module configurations
+
+
+
+
 
 
 
