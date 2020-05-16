@@ -24,7 +24,7 @@ const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
 const DEBUG_OFF = 0;
 const DEBUG_TRACE = 1;
 const DEBUG_DIALOG = 2;
-const DEBUG = DEBUG_DIALOG;
+const DEBUG = DEBUG_OFF;
 
 module.exports = function(app) {
 	var plugin = {};
@@ -52,7 +52,7 @@ module.exports = function(app) {
 	plugin.start = function(options) {
         if (DEBUG & DEBUG_TRACE) console.log("plugin.start(%s)...", JSON.stringify(options));
 
-        options = validateOptions(options);
+        options = validOptions(options);
 
         options.modules.forEach(module => {
             switch (module.cstring.split(':')[0]) {
@@ -64,7 +64,7 @@ module.exports = function(app) {
                         module.connection = { state: false };
                         module.connection.socket = new net.createConnection(port, host, () => {
                             if (DEBUG & DEBUG_DIALOG) log.N("TCP socket opened for module " + module.id, false);
-                            module.connection.state = true;
+                            module.connection.state = module.connection.socket;
                             module.connection.socket.on('data', (buffer) => {
                                 if (DEBUG & DEBUG_DIALOG) log.N("TCP data received from " + module.id + " [" + buffer.toString() + "]", false);
                                 processTcpData(buffer.toString(), module)
@@ -85,7 +85,7 @@ module.exports = function(app) {
                         module.connection.serialport = new SerialPort(path);
                         module.connection.serialport.on('open', () => {
                             if (DEBUG & DEBUG_DIALOG) log.N("serial port opened for module " + module.id, false);
-                            module.connection.state = true;
+                            module.connection.state = module.connection.serialport;
                             module.connection.parser = new ByteLength({ length: 1 });
                             module.connection.serialport.pipe(module.connection.parser);
                             module.connection.parser.on('data', (buffer) => {
@@ -96,7 +96,7 @@ module.exports = function(app) {
                                 if (DEBUG & DEBUG_DIALOG) log.N("serial port closed for " + module.id);
                                 module.connection.state = false;
                             });
-                            module.connection.serialport.write(module.statuscommand);
+                            module.connection.state.write(module.device.protocols.filter(p => (p.id == 'usb'))[0]['status']);
                         });
                     } else {
                         log.E("ignoring module '" + module.id + "' (bad or missing device path)", false);
@@ -131,30 +131,14 @@ module.exports = function(app) {
                 var m = module;
                 module.channels.forEach(channel => {
                     var c = channel;
-                    var key = m.id + "." + c.id;
-                    var stream = getStreamFromPath(((c.trigger) && (c.trigger != ""))?c.trigger:(options.defaulttriggerpath + key));
+                    var stream = getStreamFromPath(((c.trigger) && (c.trigger != ""))?c.trigger:(options.defaulttriggerpath + c.key));
                     if (stream) {
                         a.push(stream.onValue(v => {
-                            switch (m.cstring.split(':',1)[0]) {
-                                case 'http': case 'https':
-                                    break;
-                                case 'tcp':
-                                    if (m.connection.state) {
-                                        m.connection.socket.write((v == 1)?on:off);
-                                        if (c.statuscommand) m.connection.socket.write(c.statuscommand);
-                                    }
-                                    break;
-                                case 'usb':
-                                    if ((m.connection) && (m.connection.state)) {
-                                        m.connection.serialport.write((v == 1)?c.on:c.off);
-                                        m.connection.serialport.write(m.statuscommand);
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
+                            var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
+                            if (m.connection.state && command) m.connection.state.write(command);
+                            //if (m.connection.state && m.statuscommand) m.connection.state.write(m.statuscommand);
                             app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
-                                { "path": "electrical.switches." + key + ".state", "value": v }
+                                { "path": "electrical.switches." + c.key + ".state", "value": ((v == 0)?0:1) }
                             ] }] });
                         }));
                     }
@@ -162,6 +146,7 @@ module.exports = function(app) {
             }
             return(a);
         }, []);
+
     }
 
 	plugin.stop = function() {
@@ -170,28 +155,62 @@ module.exports = function(app) {
 		unsubscribes = [];
 	}
 
-    function validateOptions(options) {
+    function validOptions(options) {
+        if (DEBUG & DEBUG_TRACE) console.log("validateOptions(%s)...", JSON.stringify(options));
         var retval = options;
-        const mF = [ 'id', 'cstring', 'description', 'statuscommand' ];
-        const mR = [ 'id', 'cstring' ];
-        const cF = [ 'id', 'index', 'on', 'off', 'name', 'statusmask', 'trigger' ];
-        const cR = [ 'id', 'index', 'on', 'off' ];
+        const mF = [ "id", "deviceid", "cstring", "name" ];
+        const mR = [ "id", "deviceid", "cstring" ];
         
         options.modules = options.modules.reduce((a,m) => {
             var retval = true;
             mF.forEach(k => { m[k] = (m[k])?m[k].trim():null; if (m[k] == "") m[k] = null; });
             mR.forEach(k => { if (!m[k]) { log.E("ignoring module '" + m.id + "' (missing '" + k + "' property)", false); retval = false; } });
-            m.channels = m.channels.reduce((a,c) => {
-                var retval = true;
-                cF.forEach(k => { c[k] = (c[k])?c[k].trim():null; if (c[k] == "") c[k] = null; });
-                cR.forEach(k => { if (!c[k]) { log.E("ignoring channel '" + c.id + "' (missing '" + k + "' property)", false); retval = false; } });
-                if (retval) a.push(c);
-                return(a); 
-            },[]);
-            if (retval) a.push(m);
+
+            var device = options.devices.reduce((a,d) => { return((d.id == m.deviceid)?d:a); }, null);
+            if (device) {
+                var protocol = m.cstring.split(':')[0];
+                if (device.protocols.map(p => p.id).includes(protocol)) {
+                    if (m.channels.length == 0) {
+                        log.E("ignoring module '" + m.id + "' (no channels defined)", false); retval = false;
+                    } 
+                } else {
+                    log.E("ignoring module '" + m.id + "' (unsupported protocol '" + protocol + "')", false); retval = false;
+                }
+            } else {
+                log.E("ignoring module '" + m.id + "' (invalid device id)", false); retval = false;
+            }
+            if (retval) {
+                m.device = device;
+                a.push(m);
+            }
             return(a);
         },[]);
         return(options);
+    }
+
+    /*
+     * Get a relay control command for switching <channel> to <state> using
+     * <protocol> from <device>.
+     *  
+     * @param device - device definition from which to pull the command.
+     * @param protocol - the protocol to use for communication with device.
+     * @param channel - the channel to be operated.
+     * @param state - the state to which the relay should be set (0 or 1).
+     * @return - the required commadn string or null if recovery fails.
+     */
+    function getCommand(device, protocol, channel, state) {
+        if (DEBUG & DEBUG_TRACE) console.log("getCommand(%s,%s,%s,%s)...", device, protocol, channel, state);
+
+        var retval = null;
+        var deviceprotocol =  device.protocols.reduce((a,p) => { return((p.id == protocol)?p:a); }, null);
+        if (deviceprotocol) {
+            if ((deviceprotocol.commands.length == 1) && (deviceprotocol.commands[0].channel == 0)) {
+                retval = deviceprotocol.commands[0][((state)?"on":"off")].replace("{c}", channel);
+            } else {
+                retval = deviceprotocol.commands.reduce((a,c) => { return((c.channel == channel)?c[((state)?"on":"off")]:a); }, null);
+            }
+        }
+        return(retval);
     }
 
     /**

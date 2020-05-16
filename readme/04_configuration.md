@@ -1,93 +1,153 @@
 ## Configuration
 
-__signalk-devantech__ is configured in the normal Signal K fashion by the JSON
-configuration file ```devantech.conf``` located in the server's
-```plugin-config-files``` directory.
-```devantech.conf``` can be created and edited using a text editor or the
-Signal K configuration interface (see below).
+__signalk-devantech__ is configured by the JSON configuration file
+```devantech.json``` located in the host server's ```plugin-config-files```
+directory.
 
-The general structure of the configuration properties is illustrated below. 
+The plugin configuration has the general structure:
 ```
-Property                  Type      Required Default
-"configuration": {
-  "pollinterval":         integer   N        0   
-  "modules": [
-    {
-      "id":               string    Y        -
-      "device":           string    Y        -
-      "statuscommand":    string    N        -
-      "channels": [
-        {
-          "id":           string    Y        -
-          "name":         string    N        *id*
-          "triggerpath"   string    N        'notifications.devantech._module.id_._id_'
-          "on":           string    Y        -
-          "off":          string    Y        -
-          "status":       string    N        -
-          "statusmask"    string    N        -
-        }
-      ]
+"properties": {
+    global-settings,
+    device-definitions,
+    module-configurations
+}
+```
+
+### Global settings
+
+The __global__ object sets some properties which influence the overall
+behaviour of the plugin.
+The default value looks like this:
+```
+    "global": {
+        "defaultnotificationpath": ".notifications.control"
     }
-  ]
-}
 ```
 
-The following file listing shows a specimen configuration for a USB-connected
-two-channel relay module
-[USB-RLY02]()
-and a WiFi connected two-channel relay module
-[ESP32LR20]().
+__defaultnotificationpath__ specifies where the plugin should look for
+notification trigger keys and must be a path in the server's 'vessels.self.'
+data tree. Required.
+
+__pollinterval__ specifies the interval in milliseconds at which the plugin
+should interrogate the state of attached relay modules.
+Only relay modules which define a __status__ property will actually be polled
+at this interval.
+By default, __pollinterval__ is set to zero which completely disables polling
+of connected  modules.
+Polling should only be enabled cautiously and conservatively because of its
+potential impact on system performance.
+Optional.
+Defaults to zero.
+
+### Device definitions
+
+The __devices__ array contains one or more _device_ objects, each of which
+describes the operating parameters of a relay module device in terms of its
+supported communication protocols and associated operating commands.
+Required.
+Defaults to a collection of definitions for each of the supported Devantech
+relay modules.
+The default value begins with this snippet:
 ```
-{
-  "enabled": true,
-  "enableLogging": false,
-  "configuration": {
-    "modules": [
-      {
-        "id": "usb0",
-        "device": "usb:/dev/ttyACM0",
-        "status": "[",
-        "channels": [
-          {
-            "id": "1",
-            "name": "En-suite towel rail",
-            "on": "e",
-            "off": "p",
-            "statusmask": 1
-          },
-          {
-            "id": "2",
-            "name": "Dayhead towel rail",
-            "on": "f",
-            "off": "o",
-            "statusmask": 2
-          }
-        ]
-      },
-      {
-        "id": "wifi0",
-        "device": "net:192.168.1.100:6161",
-        "channels": [
-          {
-            "id": "1",
-            "name": "Wheelhouse table lamp",
-            "on": "SR 1 1",
-            "off": "SR 1 0",
-            "status": "GR 1"
-          },
-          {
-            "id": "2",
-            "name": "Wheelhouse down lights",
-            "on": "SR 2 1",
-            "off": "SR 2 0",
-            "status": "GR 2"
-          }
-        ]
-      }
-    ]
-  }
-}
+    "devices": [
+        {
+            "id": "USB-RELAY02",
+            "size": 2,
+            "protocols": [
+                {
+                    "id": "usb",
+                    "status": "[",
+                    "commands": [
+                        {
+                            "channel": 1,
+                            "on": "e",
+                            "off": "o"
+                        },
+                        {
+                            "channel": 2,
+                            "on": "f",
+                            "off": "p"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "USB-RELAY04",
+            ...
+            ...
 ```
+
+Each _device_ object is defined by the following properties.
+
+__id__ gives a unique identifier for the device being defined: in this example,
+the manufacturer's relay module model number was used.
+Required.
+No default.
+
+__size__ specifies the number of relay channels supported by the device.
+Required.
+No default.
+
+The __protocols__ array contains a list of _protocol_ objects, each of which
+defines a communication protocol supported by the device.
+The 'USB-RELAY02' device in the above example only supports a single protocol.
+
+Each _protocol_ object is defined by the following properties.
+
+__id__ specifies the protocol being defined for the parent device. 
+The plugin understands 'usb', 'tcp', 'http' and 'https' protocol types.
+
+__status__ specifies the command that should be sent to the parent device to
+elicit a module status report.
+
+The __commands__ array contains one or more _command_ objects which describe
+the commands to be used to change the state of the device relays.
+Required.
+Defaults to an empty array.
+
+There are two possibilites:
+
+1. the _commands_ array contains a single _command_ object with a __channel__
+   property value of zero that provides a pattern for the commands to be used
+   for all channels;
+2. the _commands_array contains a collection of _command_ objects, one for each
+   relay channel, which give separate commands for operating each of the
+   device's relay channels.
+
+A _command_ object is defined by the following properties.
+
+__channel__ specifies the index of the device relay channel to which the command
+relates.
+Relay channels are indexed from 1.
+Specifying a 0 value says that the following commands are used to operate all
+channels in which case, the wildcard '{c}' will be replaced during command
+execution by the index of the relay channel which is being operated.
+Required.
+No default.
+
+__on__ specifies the command that should be issued to switch the relay channel
+ON.
+A wildcard command (used if __channel__ equals 0) might be "ON {c}".
+Required.
+No default.
+
+__off__ specifies the command that should be issued to switch the relay channel
+OFF.
+A wildcard command (used if __channel__ equals 0) might be "OFF {c}".
+Required.
+No default.
+
+### Module configurations
+
+
+
+
+#### Command definition
+
+The __commands__ array includes a list of objects, each of which defines the
+commands that should be sent to operate a particular relay channel on the
+parent device.
 
 ### Initial configuration
 
