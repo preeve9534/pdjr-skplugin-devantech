@@ -4,16 +4,34 @@ __signalk-devantech__ is configured by the JSON configuration file
 ```devantech.json``` located in the host server's ```plugin-config-files```
 directory.
 
-The plugin configuration has the general structure:
+The plugin can be configured through the Signal K Node server plugin
+configuration panel by navigating to _Server->Plugin config_ and selecting the
+_Devantech relay module plugin_ tab.
+
+Of course, the configuration file can be edited directly using a text editor
+and, given the clunkiness of the Signal K configuration interface, many users
+may prefer this approach and the following discussion is couched in these
+terms.
+
+The plugin configuration file has the general structure:
 ```
-"properties": {
-    global-settings,
-    device-definitions,
-    module-configurations
+{
+    "enabled": false,
+    "enableLogging": false,
+    "properties": {
+        "global": { ... },
+        "devices": [ ... ],
+        "modules": [ ... ]
+    }
 }
 ```
 
-### Global settings
+If you are using a compatible relay module from Devantech, then most likely
+the only configuration required will be to define the modules connected to
+your system in the _modules_ array, setting __enabled__ to ```true``` and
+re-starting the Signal K server.  
+
+### Global property
 
 The __global__ object sets some properties which influence the overall
 behaviour of the plugin.
@@ -32,14 +50,14 @@ __pollinterval__ specifies the interval in milliseconds at which the plugin
 should interrogate the state of attached relay modules.
 Only relay modules which define a __status__ property will actually be polled
 at this interval.
-By default, __pollinterval__ is set to zero which completely disables polling
-of connected  modules.
+If __pollinterval__ is omitted or set to zero then all polling of connected
+modules is disabled.
 Polling should only be enabled cautiously and conservatively because of its
 potential impact on system performance.
 Optional.
 Defaults to zero.
 
-### Device definitions
+### Devices property
 
 The __devices__ array contains one or more _device_ objects, each of which
 describes the operating parameters of a relay module device in terms of its
@@ -136,9 +154,16 @@ or channels OFF.
 Required.
 No default.
 
-### Module configurations
+### Modules property
 
+The __modules__ array contains one or more _module_ object definitions, each of
+which describes a relay module which is actually part of your system and will
+be operated by the __signalk-devantech__ plugin.
+Required.
+Defaults to the empty array.
 
+actually connected to your system.
+Each _module_ entry in the array def
 
 
 
