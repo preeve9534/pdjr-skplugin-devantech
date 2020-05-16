@@ -44,7 +44,15 @@ The default value looks like this:
 
 __defaultnotificationpath__ specifies where the plugin should look for
 notification trigger keys and must be a path in the server's 'vessels.self.'
-data tree. Required.
+data tree.
+Required.
+Defaults to '.notifications.control.'.
+
+__defaultnotificationonstates__ specifies the notification states that will by
+default indicate a relay ON condition when a notification appears on a trigger
+path.
+Required.
+Defaults to [ 'alert', 'alarm', 'emergency' ].
 
 __pollinterval__ specifies the interval in milliseconds at which the plugin
 should interrogate the state of attached relay modules.
@@ -162,109 +170,108 @@ be operated by the __signalk-devantech__ plugin.
 Required.
 Defaults to the empty array.
 
-actually connected to your system.
-Each _module_ entry in the array def
+Consider the following example.
+```
+    "modules": [
+      {
+        "id": "usb0",
+        "deviceid": "USB-RELAY02",
+        "cstring": "usb:/dev/ttyACM0",
+        "description": "Helm panel alarm relay module",
+        "channels": [
+          { "index": 1, "name": "Alarm system beacon" },
+          { "index": 2, "name": "Alarm system annunciator" }
+        ]
+      },
+      {
+        "id": "wifi0",
+        "deviceid": "ETH-XXX04",
+        "cstring": "http://192.168.1.11/",
+        "channels": [
+          { "index": 1, "name": "En-suite towel rail" },
+          { "index": 2, "name": "Dayhead towel rail" },
+          { "index": 3, "name": "En-suite towel rail" },
+          { "index": 4, "name": "Dayhead towel rail" }
+        ]
+      }
+    ]
+```
 
+Each _module_ object is defined by the following properties.
 
+__id__ specifies a unique identifier for the module.
+This value is used together with a channel __id__ (see below) to construct a
+key value which uniquely identifies each relay channel within Signal K.
+Required.
+No default.
 
+__deviceid__ specifies the type of device which constitutes this module.
+The supplied value must be the __id__ of a _device_ defined in the __devices__
+array.
+Required.
+No default.
 
+__cstring__ specifies a connection string of the form
+*protocol*__:__*address*__:__[*port*]
+where:
 
+ _protocol_ must be one of 'usb', 'tcp', 'http' or 'https', dependent
+upon how the relay module is connected to the host server.
+_protocol_ must also be one of the protocols supported by the _device_
+selected by __deviceid__.
 
-#### Command definition
+_address_ is a a selector for the device and is dependent upon the value of
+_protocol_.
+For 'usb', _address_ will be a path to the ```/dev/``` entry for the
+USB/serial connection. 
+For the other protocols, _address_ will be either the IP address or hostname
+of the ethernet connected module and the optional _port_ can be specified if
+necessary.
 
-The __commands__ array includes a list of objects, each of which defines the
-commands that should be sent to operate a particular relay channel on the
-parent device.
+__cstring__ is required and has no default.
 
-### Initial configuration
-
-__signalk-devantech__ can be configured through the Signal K Node server plugin
-configuration panel.
-Navigate to _Server->Plugin config_ and select the _Rerelay_ tab.
-
-![Plugin configuration panel](readme/screenshot.png)
-
-The configuration panel consists of a Signal K Node server widget containing
-_Active_ and _Debug log_ options, a collection of expandable tabs which conceal
-specific configuration options, and finally a _Submit_ button which saves the
-plugin configuration, commits any changes, and starts or stops the plugin
-dependent upon the state of the _Active_ option.
-
-You are advised to initially configure the plugin in the following way. 
-
-1. Check the _Active_ option.
-
-2. Follow the guidance below to tell the plugin about connected relay modules,
-   then click _Submit_.
-   You can use a monitoring app (like __signalk-switchbank-monitor__  to confirm
-   the presence and operation of that the configured module channels.
-
-The __Modules__ tab opens (and closes) a list which defines the modules that the
-plugin will adopt and operate.
-You can add and remove modules from the definition using the '+' and '-' list
-controls.
-
-Each module is defined by the following properties.
-
-__id__  
-Required text property which identifies the module.
-
-__device__  
-Required text property specifying the module access method and the module device
-address, separated by a colon character.
-The access method must be one of 'usb', 'http' or 'https', dependent upon how
-the relay module is connected to the host server.
-
-If the access method is 'usb', then the device address should be the path to
-the serial device which interfaces to the locally connected hardware.
-A typical value for the __device__ property might be 'usb:/dev/ttyACM0'.
-
-If the access method is 'http' or 'https', then the device address should be
-the hostname or IP address of the relay module on the network.
-A typical value for the __device__ property might be 'http://192.168.1.100:2122'
-
-__pollinterval__  
-Currently ignored, but reserved for future use.
-
-Within each __Module__ configuration, the _Channels_ tab opens (and closes) a
-list which defines the module's relay channels.
-You can add and remove channels from the definition using the '+' and '-' list
-controls.
-
-Each channel is defined by the following properties:
-
-__id__
-Required text property which identifies the channel being defined.
-
-__name__  
-Optional (but recommended) text property describing the channel.
+__description__ supplies some text describing the module.
 This text is used by the plugin to elaborate log messages and may be used by
 other applications to improve the legibility of their output.
+Optional.
+No default.
 
-__trigger__
-Optional text property specifying a key path whose value should be mapped onto
-this channel's relay state.
-In general, this path must address a value which is either 0 (for OFF) or 1
-(for ON) and so is especially useful for mapping the value of some member of
-```electrical.switches.*.state```.
-The plugin supports the use of notifications as relay controls and if __trigger__
-is not defined its value will default internally to 'notifications.control._module-id_._channel-id_'.
-When a notification is used as a trigger, either implicitly or explicitly, the
-plugin recognises an absent or 'normal' notification as OFF and a notification
-with any other state value as ON.
+The __channels__ array contains a collection of _channel_ objects each of which
+describes a relay channel.
+Required.
+Defaults to the empty array.
 
-__off__
-A required text property which specifies the command string which must be
-written to __device__ in order to switch the relay off.
-If the module is connected by USB, then this will typically be some simple
-character or byte sequence that msut be written to the device port in order to
-switch this particular relay OFF.
-If the module is connected by HTTP or HTTPS, then this will typically be some
-URL which turns this particular relay OFF: the URL used here must be a relative
-URL which will be appended to the containing module's device address. 
+Each _channel_ object maps a relay channel in the Signal K domain into a relay
+channel on a physical device and is defined by the following properties.
 
-__on__
-A required text property which specifies the command string which must be
-written to __device__ in order to switch the relay on.
-The principles discussed under the __on__ property apply here too.
+__index__ specifies the relay channel number on the selected device (channels
+are numbered from 1).
+Required.
+No default.
 
+__id__ specifies an identifier for the channel in the Signal K domain that is
+used with the containing module __id__ to construct a unique, identifying
+channel key.
+Optional.
+Defaults to __index__. 
+
+__name__ supplies some text naming the channel.
+This text is used by the plugin to elaborate log messages and may be used by
+other applications to improve the legibility of their output.
+Optional.
+Defaults to the channel identifying key.
+
+__trigger__ specifyies a key path (overriding the default notification path)
+whose value should be mapped onto this channel's relay state.
+In general, this path must address a value which is either 0 (for OFF) or 
+non-zero (for ON) and so is especially useful for mapping the value of some
+member of a switch in ```electrical.switches.*.state```.
+Optional.
+Defaults to '_global.defaultnotificationpath_._module.id_._channel.id_'.
+
+__triggerstates__ is a string array (overriding the default notification ON
+states) whose members specify the notification alert states which define an ON
+condition.
+Only relevent when a notification is used as a trigger.
+Optional.
+Defaults to the value 'global.defaultnotificationonstates'.
