@@ -127,11 +127,22 @@ configuration panel by navigating to _Server->Plugin config_ and selecting the
 _Devantech relay module plugin_ tab.
 
 Of course, the configuration file can be edited directly using a text editor
-and, given the clunkiness of the Signal K configuration interface, many users
-may prefer this approach and the following discussion is couched in these
-terms.
+and, given the clunkiness of the Signal K configuration interface some users
+may prefer this approach.
 
-The plugin configuration file has the general structure:
+The following discussion assumes the use of the plugin configuration interface,
+but gives examples which illustrate the configuration file components
+underpinning the GUI.
+
+If you are using a compatible relay module from Devantech, then most likely
+the only configuration required will be to define the modules connected to
+your system before enabling the plugin by setting the "Plugin enabled?"
+option to true.
+
+The plugin configuration is divided onto three parts (_Global settings_,
+_Device definitions_ and _Connected modules_) each represented in the
+GUI by an expandable tab.
+
 ```
 {
     "enabled": false,
@@ -144,55 +155,133 @@ The plugin configuration file has the general structure:
 }
 ```
 
-If you are using a compatible relay module from Devantech, then most likely
-the only configuration required will be to define the modules connected to
-your system in the _modules_ array, setting __enabled__ to ```true``` and
-re-starting the Signal K server.  
+### Global settings
 
-### Global property
+These influence the overall behaviour of the plugin.
 
-The __global__ object sets some properties which influence the overall
-behaviour of the plugin.
-The default value looks like this:
-```
-    "global": {
-        "defaultnotificationpath": ".notifications.control",
-        "defaultnotificationonstates": [ "alert", "alarm", "emergency" ] 
-    }
-```
-
-__defaultnotificationpath__ specifies where the plugin should look for
-notification trigger keys and must be a path in the server's 'vessels.self.'
-data tree.
+_Default trigger path_ specifies which Signal K data keys should normally be
+used by the plugin as relay triggers.
+The value supplied here is a default and can be overriden on a per-channel
+basis in the _Connected modules_ section.
+The supplied value must be relative to the server's 'vessels.self.' path
+and should include the tokens '{m}' and '{c}' as placeholders which will be
+substituted by module id and channel id values for each connected module.
 Required.
-Defaults to '.notifications.control.'.
+Defaults on installation to '.notifications.control.{m}.{c}'.
 
-__defaultnotificationonstates__ specifies the notification states that will by
-default indicate a relay ON condition when a notification appears on a trigger
-path.
+_Default notification trigger ON states_ specifies the notification states
+that will by default indicate a relay ON condition when a notification
+appears on a trigger notification path.
+The value supplied here is a default and can be overriden on a per-channel
+basis in the _Connected modules_ section.
 Required.
-Defaults to [ 'alert', 'alarm', 'emergency' ].
+Defaults on installation to [ 'alert', 'alarm', 'emergency' ].
 
-__pollinterval__ specifies the interval in milliseconds at which the plugin
+_Polling interval_ specifies the interval in milliseconds at which the plugin
 should interrogate the state of attached relay modules.
-Only relay modules which define a __status__ property will actually be polled
-at this interval.
-If __pollinterval__ is omitted or set to zero then all polling of connected
-modules is disabled.
+Only devices in _Device definitions_ which define a __status__ property will
+actually be polled at this interval.
+If this value is omitted or set to zero then all polling of connected modules
+is disabled.
 Polling should only be enabled cautiously and conservatively because of its
 potential impact on system performance.
 Optional.
-Defaults to zero.
+Defaults zero.
 
-### Devices property
+The default configuration file snippet looks like this:
+```
+    "global": {
+        "trigger": ".notifications.control.{m}.{c}",
+        "triggerstates": [ "alert", "alarm", "emergency" ],
+        "pollinterval": 0
+    }
+```
 
-The __devices__ array contains one or more _device_ objects, each of which
-describes the operating parameters of a relay module device in terms of its
-supported communication protocols and associated operating commands.
+### Device definitions
+
+This section defines the interfacing requirements of all supported relay
+devices: a device must be defined here before it can be configured for use by
+the plugin.
+The plugin installation includes idevice definitions for all of the supporteds
+Devantech relay modules.
+
+The configuration GUI allows you to create and delete device definitions using
+the ```[+]``` and ```[-]``` controls.
+
+Each device has the following properties.
+
+_Device id_ gives a unique identifier for the device being defined (the pre-
+installed definitions use the relay module manufacturer's model number).
 Required.
-Defaults to a collection of definitions for each of the supported Devantech
-relay modules.
-Consider the following example:
+No default.
+
+_Number of supported relay channels_ specifies the number of relay channels
+supported by the device.
+Required.
+No default.
+
+_Protocols_ is a list of protocol definitions, each of which defines a
+communication protocol supported by the device.
+The configuration GUI allows you to create and delete protocol definitions
+using the ```[+]``` and ```[-]``` controls.
+
+Each protocol has the following properties.
+
+_Protocol id_ specifies the protocol type being defined. 
+The plugin understands 'usb', 'tcp', 'http' and 'https' protocol types.
+Required.
+No default.
+
+_Module status request command_ specifies the command that should be sent to
+the parent device over this protocol to elicit a module status report.
+If supplied, this command will only be used if the _Polling interval_ property
+in _Global settings_ is set to a non-zero value.
+Optional.
+No default.
+
+_Commands_ is a list of command definitions, which describes the the commands
+required to change the state of the device relays.
+The configuration GUI allows you to create and delete command definitions
+using the ```[+]``` and ```[-]``` controls.
+
+The _Commands_ array can be configured with a single command definition that
+provides a template for the commands to be used to operate relays on the host
+device.
+In this case, the specified command must have a _Channel index_ property with
+the value zero and the individual command strings will need to include
+wildcards that can be substituted with the index of the particular channel
+being operated.
+
+Alternatively, the _Commands_ array can include a collection of command
+definitions, one for each relay channel, which give separate commands for
+operating each of the device's relay channels.
+
+A command has the following properties.
+
+_Channel index_ specifies the index of the device relay channel to which the
+command relates (relay channels are indexed from 1).
+Specifying a 0 value says that the following _ON command_ and _OFF command_
+should be used to operate all relay channels.
+Required.
+No default.
+
+_ON command_ specifies the command that should be issued to switch the relay
+channel or channels ON.
+If _Channel index_ is set to zero, then the command supplied here must include
+the wildcard '{c}' will be replaced during command execution by the index of
+the relay channel which is being operated.
+Required.
+No default.
+
+_OFF command_ specifies the command that should be issued to switch the relay
+channel or channels OFF.
+If _Channel index_ is set to zero, then the command supplied here must include
+the wildcard '{c}' will be replaced during command execution by the index of
+the relay channel which is being operated.
+Required.
+No default.
+
+A simple snippet from the configuration file might look like this.
 ```
     "devices": [
         {
@@ -223,65 +312,7 @@ Consider the following example:
     ]
 ```
 
-Each _device_ object is defined by the following properties.
-
-__id__ gives a unique identifier for the device being defined: in this example,
-the manufacturer's relay module model number was used.
-Required.
-No default.
-
-__size__ specifies the number of relay channels supported by the device.
-Required.
-No default.
-
-The __protocols__ array contains a list of _protocol_ objects, each of which
-defines a communication protocol supported by the device.
-The 'USB-RELAY02' device in the above example only supports a single protocol.
-
-Each _protocol_ object is defined by the following properties.
-
-__id__ specifies the protocol being defined for the parent device. 
-The plugin understands 'usb', 'tcp', 'http' and 'https' protocol types.
-
-__status__ specifies the command that should be sent to the parent device to
-elicit a module status report.
-
-The __commands__ array contains one or more _command_ objects which describe
-the commands to be used to change the state of the device relays.
-Required.
-Defaults to an empty array.
-
-There are two possibilites:
-
-1. the _commands_ array contains a single _command_ object with a __channel__
-   property value of zero that provides a pattern for the commands to be used
-   for all channels (see device 'ETH-RELAY04' in the example);
-2. the _commands_array contains a collection of _command_ objects, one for each
-   relay channel, which give separate commands for operating each of the
-   device's relay channels (see device 'USB-RELAY02' in the example).
-
-A _command_ object is defined by the following properties.
-
-__channel__ specifies the index of the device relay channel to which the command
-relates.
-Relay channels are indexed from 1.
-Specifying a 0 value says that the following commands are used to operate all
-channels in which case, the wildcard '{c}' will be replaced during command
-execution by the index of the relay channel which is being operated.
-Required.
-No default.
-
-__on__ specifies the command that should be issued to switch the relay channel
-or channels ON.
-Required.
-No default.
-
-__off__ specifies the command that should be issued to switch the relay channel
-or channels OFF.
-Required.
-No default.
-
-### Modules property
+### Modules definitions
 
 The __modules__ array contains one or more _module_ object definitions, each of
 which describes a relay module which is actually part of your system and will

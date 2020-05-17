@@ -131,16 +131,18 @@ module.exports = function(app) {
                 var m = module;
                 module.channels.forEach(channel => {
                     var c = channel;
-                    var stream = getStreamFromPath(((c.trigger) && (c.trigger != ""))?c.trigger:(options.defaulttriggerpath + c.key));
-                    if (stream) {
-                        a.push(stream.onValue(v => {
+                    var triggerPath = ((c.trigger)?c.trigger:options.global.trigger).replace('{m}', m.id).replace('{c}', c.id);
+                    var triggerStates = (c.triggerstates)?c.triggerstates:options.global.triggerstates; 
+                    var triggerStream = getStreamFromPath(triggerPath, triggerStates);
+                    if (triggerStream) {
+                        a.push(triggerStream.onValue(v => {
                             var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
                             if (m.connection.state && command) m.connection.state.write(command);
-                            //if (m.connection.state && m.statuscommand) m.connection.state.write(m.statuscommand);
                             app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
                                 { "path": "electrical.switches." + c.key + ".state", "value": ((v == 0)?0:1) }
                             ] }] });
                         }));
+                    } else {
                     }
                 });
             }
@@ -171,7 +173,16 @@ module.exports = function(app) {
                 var protocol = m.cstring.split(':')[0];
                 if (device.protocols.map(p => p.id).includes(protocol)) {
                     if (m.channels.length == 0) {
-                        log.E("ignoring module '" + m.id + "' (no channels defined)", false); retval = false;
+                        log.N("synthesising " + device.size + " channels for module '" + m.id, false);
+                        for (var i = 1; i <= device.size; i++) m.channels.push({ "index": i });
+                    }
+                    if (m.channels.length <= device.size) {
+                        m.channels.map(c => {
+                            c.id = (c.id)?c.id:("" + c.index);
+                            c.name = (c.name)?c.name:(m.id + '[' + c.id + ']'); 
+                        });
+                    } else {
+                        log.E("ignoring module '" + m.id + "' (zero or too many channels defined)", false); retval = false;
                     } 
                 } else {
                     log.E("ignoring module '" + m.id + "' (unsupported protocol '" + protocol + "')", false); retval = false;
@@ -220,13 +231,13 @@ module.exports = function(app) {
      * notification paths into numerical values based upon notification alert
      * state.
      */ 
-    function getStreamFromPath(path, debug=false) {
-        if (DEBUG & DEBUG_TRACE) console.log("getStreamFromPath(%s,%s)...", path, debug);
+    function getStreamFromPath(path, states, debug=false) {
+        if (DEBUG & DEBUG_TRACE) console.log("getStreamFromPath(%s,%s,%s)...", path, states, debug);
 
         let _path = path;
         var stream = null;
         if ((path != null) && ((stream = app.streambundle.getSelfStream(path)) !== null)) {
-            if (path.startsWith("notifications.")) stream = stream.map(v => ((v == null)?0:((v.state != "normal")?1:0))).startWith(0);
+            if (path.startsWith("notifications.")) stream = stream.map(v => ((v == null)?0:((states.contains(v.state))?1:0))).startWith(0);
             stream = stream.skipDuplicates();
             if (debug) stream = stream.doAction(v => console.log("%s = %s", _path, v));
         }

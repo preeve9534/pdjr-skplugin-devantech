@@ -1,7 +1,28 @@
 {
     "type": "object",
     "properties": {
-        "notificationtriggerpath": { "title": "Default notification path for relay triggers", "type": "string", "default": "notifications.control." },
+        "global": {
+            "type": "object",
+            "required": [ "defaultnotificationpath", "defaultnotificationonstates", "pollinterval" ],
+            "properties": {
+                "trigger": {
+                    "title": "Default path for relay triggers",
+                    "type": "string",
+                    "default": "notifications.control.{m}.{c}"
+                },
+                "triggerstates": {
+                    "title": "Default notification trigger 'ON' states",
+                    "type": "array",
+                    "default": [ "alert", "alarm", "emergency" ],
+                    "items": { "type": "string" }
+                },
+                "pollinterval": {
+                    "title": "Polling frequency in ms",
+                    "type": "number",
+                    "default": 0
+                }
+            }
+        },
         "modules" : {
             "type": "array",
             "default": [],
@@ -9,8 +30,8 @@
                 "type": "object",
                 "required": [ "id", "deviceid", "cstring", "channels" ],
                 "properties": {
-                    "id": { "title": "Signalk module id", "type": "string" },
                     "deviceid": { "title": "Device id", "type": "string" },
+                    "id": { "title": "Signalk module id", "type": "string" },
                     "cstring": { "title": "Connection string", "type": "string" },
                     "description": { "title": "Description", "type": "string" },
                     "channels": {
@@ -23,7 +44,8 @@
                                 "index": { "title": "Device relay index", "type": "number" },
                                 "id": { "title": "Signal K channel id", "type": "string" },
                                 "name": { "title": "Channel name", "type": "string" },
-                                "trigger": { "title": "Trigger path", "type": "string" }
+                                "trigger": { "title": "Trigger path", "type": "string" },
+                                "triggerstates": { "title": "Notification ON states", "type": "array", "items": { "type": "string" } }
                             }
                         }
                     }
@@ -60,7 +82,23 @@
                         }
                     } 
                 }
-            }
+            },
+            "default": [
+                {
+                    "id": "USB-RELAY02",
+                    "size": 2,
+                    "protocols": [
+                        {
+                            "id": "usb",
+                            "status": "[",
+                            "commands": [
+                                { "channel": 1, "on": "e", "off": "o" },
+                                { "channel": 2, "on": "f", "off": "p" }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     }
 }
