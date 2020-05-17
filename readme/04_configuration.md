@@ -3,25 +3,24 @@
 __signalk-devantech__ is configured by the JSON configuration file
 ```devantech.json``` located in the host server's ```plugin-config-files```
 directory.
-
-The plugin can be configured through the Signal K Node server plugin
-configuration panel by navigating to _Server->Plugin config_ and selecting the
-_Devantech relay module plugin_ tab.
-
-Of course, the configuration file can be edited directly using a text editor
+The configuration file can, of course, be edited directly using a text editor
 and, given the clunkiness of the Signal K configuration interface some users
 may prefer this approach.
 
-The following discussion assumes the use of the plugin configuration interface,
-but gives examples which illustrate the configuration file components
-underpinning the GUI.
+Even so, the following discussion focusses on configuration through the
+Signal K Node server plugin panel which can be accessed by navigating to
+_Server->Plugin config_ and selecting the _Devantech relay module plugin_ tab.
+For completeness, the discussion includes some code examples which illustrate
+the configuration file components underpinning the GUI.
+
+### Getting started
 
 If you are using a compatible relay module from Devantech, then most likely
 the only configuration required will be to define the modules connected to
 your system before enabling the plugin by setting the "Plugin enabled?"
-option to true.
+configuration property to true.
 
-The plugin configuration is divided onto three parts (_Global settings_,
+The plugin configuration is divided into three parts (_Global settings_,
 _Device definitions_ and _Connected modules_) each represented in the
 GUI by an expandable tab.
 
@@ -39,7 +38,7 @@ GUI by an expandable tab.
 
 ### Global settings
 
-These influence the overall behaviour of the plugin.
+The properties under this tab influence the overall behaviour of the plugin.
 
 _Default trigger path_ specifies which Signal K data keys should normally be
 used by the plugin as relay triggers.
@@ -70,7 +69,7 @@ potential impact on system performance.
 Optional.
 Defaults zero.
 
-The default configuration file snippet looks like this:
+The default configuration file global snippet looks like this:
 ```
     "global": {
         "trigger": ".notifications.control.{m}.{c}",
@@ -81,10 +80,10 @@ The default configuration file snippet looks like this:
 
 ### Device definitions
 
-This section defines the interfacing requirements of all supported relay
-devices: a device must be defined here before it can be configured for use by
-the plugin.
-The plugin installation includes idevice definitions for all of the supporteds
+The properties under this tab define the interfacing characteristics of all
+supported relay devices: a device must be defined here before it can be
+configured for use by the plugin.
+The plugin installation includes device definitions for all of the supported
 Devantech relay modules.
 
 The configuration GUI allows you to create and delete device definitions using
@@ -196,61 +195,31 @@ A simple snippet from the configuration file might look like this.
 
 ### Modules definitions
 
-The __modules__ array contains one or more _module_ object definitions, each of
-which describes a relay module which is actually part of your system and will
-be operated by the __signalk-devantech__ plugin.
-Required.
-Defaults to the empty array.
+The iproperties under this tab define the relay modules which are actually
+part of your system and will be operated by the __signalk-devantech__ plugin.
 
-Consider the following example.
-```
-    "modules": [
-      {
-        "id": "usb0",
-        "deviceid": "USB-RELAY02",
-        "cstring": "usb:/dev/ttyACM0",
-        "description": "Helm panel alarm relay module",
-        "channels": [
-          { "index": 1, "name": "Alarm system beacon" },
-          { "index": 2, "name": "Alarm system annunciator" }
-        ]
-      },
-      {
-        "id": "wifi0",
-        "deviceid": "ETH-XXX04",
-        "cstring": "http://192.168.1.11/",
-        "channels": [
-          { "index": 1, "name": "En-suite towel rail" },
-          { "index": 2, "name": "Dayhead towel rail" },
-          { "index": 3, "name": "En-suite towel rail" },
-          { "index": 4, "name": "Dayhead towel rail" }
-        ]
-      }
-    ]
-```
+The configuration GUI allows you to create and delete module definitions using
+the ```[+]``` and ```[-]``` controls.
 
-Each _module_ object is defined by the following properties.
+Each module has the following properties.
 
-__id__ specifies a unique identifier for the module.
-This value is used together with a channel __id__ (see below) to construct a
-key value which uniquely identifies each relay channel within Signal K.
+_Signal K module id_ specifies a unique identifier for the module in the Signal
+K domain.
 Required.
 No default.
 
-__deviceid__ specifies the type of device which constitutes this module.
-The supplied value must be the __id__ of a _device_ defined in the __devices__
-array.
+_Device id_ specifies the device which implements this module.
+The supplied value must be the _id_ of a device defined in the _Device
+definitions_ section.
 Required.
 No default.
 
-__cstring__ specifies a connection string of the form
-*protocol*__:__*address*__:__[*port*]
+_Connection string_ specifies a connection string of the form
+'*protocol*__:__*address*__:__[*port*]'
 where:
 
- _protocol_ must be one of 'usb', 'tcp', 'http' or 'https', dependent
-upon how the relay module is connected to the host server.
-_protocol_ must also be one of the protocols supported by the _device_
-selected by __deviceid__.
+_protocol_ must be one of 'usb', 'tcp', 'http' or 'https', dependent upon how
+the relay module should communicate with the host server.
 
 _address_ is a a selector for the device and is dependent upon the value of
 _protocol_.
@@ -260,50 +229,81 @@ For the other protocols, _address_ will be either the IP address or hostname
 of the ethernet connected module and the optional _port_ can be specified if
 necessary.
 
-__cstring__ is required and has no default.
+_Connection string_ id required and has no default.
 
-__description__ supplies some text describing the module.
+_Module description_ supplies some text describing the module.
 This text is used by the plugin to elaborate log messages and may be used by
 other applications to improve the legibility of their output.
 Optional.
 No default.
 
-The __channels__ array contains a collection of _channel_ objects each of which
-describes a relay channel.
-Required.
-Defaults to the empty array.
+_Channels_ is an optional collection of channel definitions, each of which
+describes a relay channel and how it should be operated.
+Each channel definition maps a relay channel in the Signal K domain into a
+relay channel on a physical device.
 
-Each _channel_ object maps a relay channel in the Signal K domain into a relay
-channel on a physical device and is defined by the following properties.
+If _Channels_ is not defined, then the plugin will automatically construct a
+definition for each channel using some minimal defaults.
+It is much better to supply a comprehensive _Channels_ array definition since
+this usefully documents the implemented solution.
 
-__index__ specifies the relay channel number on the selected device (channels
-are numbered from 1).
+Each channel definition has the following properties.
+
+_Relay index_ specifies the relay channel number on the selected device to
+which the definition relates (relay channels are numbered from 1).
 Required.
 No default.
 
-__id__ specifies an identifier for the channel in the Signal K domain that is
-used with the containing module __id__ to construct a unique, identifying
-channel key.
+_Signal K channel id_ specifies a unique identifier for the channel in the
+Signal K domain.
 Optional.
-Defaults to __index__. 
+Defaults to the value of _Relay index_. 
 
-__name__ supplies some text naming the channel.
+_Channel description_ supplies some text describing the channel.
 This text is used by the plugin to elaborate log messages and may be used by
 other applications to improve the legibility of their output.
 Optional.
-Defaults to the channel identifying key.
+Defaults to a period separated catenation of the values supplied for _Signal
+K module id_ and _Signal K channel id_.
 
-__trigger__ specifyies a key path (overriding the default notification path)
-whose value should be mapped onto this channel's relay state.
+_Trigger path_ specifyies a key path whose value should be mapped onto this
+channel's relay state.
 In general, this path must address a value which is either 0 (for OFF) or 
 non-zero (for ON) and so is especially useful for mapping the value of some
-member of a switch in ```electrical.switches.*.state```.
+switch in ```electrical.switches.*.state```.
 Optional.
-Defaults to '_global.defaultnotificationpath_._module.id_._channel.id_'.
+Defaults to the value of _Default trigger path_.
 
-__triggerstates__ is a string array (overriding the default notification ON
-states) whose members specify the notification alert states which define an ON
-condition.
-Only relevent when a notification is used as a trigger.
+_Notification trigger ON states_ is a string array whose members specify the
+notification alert states which define an ON condition for this channel.
+Only relevent when a notification is used as a _Trigger path_.
 Optional.
-Defaults to the value 'global.defaultnotificationonstates'.
+Defaults to the value of _Default notification trigger ON states_.
+
+The following snippet illustrates how module definitions appear in the JSON
+configuration file.
+```
+    "modules": [
+      {
+        "id": "usb0",
+        "deviceid": "USB-RELAY02",
+        "cstring": "usb:/dev/ttyACM0",
+        "description": "Helm panel alarm relay module",
+        "channels": [
+          { "index": 1, "description: "Alarm system beacon" },
+          { "index": 2, "description": "Alarm system annunciator" }
+        ]
+      },
+      {
+        "id": "wifi0",
+        "deviceid": "ETH-XXX04",
+        "cstring": "http://192.168.1.11/",
+        "channels": [
+          { "index": 1, "description": "En-suite towel rail" },
+          { "index": 2, "description": "Dayhead towel rail" },
+          { "index": 3, "description": "En-suite towel rail" },
+          { "index": 4, "description": "Dayhead towel rail" }
+        ]
+      }
+    ]
+```
