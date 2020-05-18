@@ -24,7 +24,7 @@ const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
 const DEBUG_OFF = 0;
 const DEBUG_TRACE = 1;
 const DEBUG_DIALOG = 2;
-const DEBUG = DEBUG_OFF;
+const DEBUG = (DEBUG_TRACE & DEBUG_DIALOG);
 
 module.exports = function(app) {
 	var plugin = {};
@@ -52,103 +52,62 @@ module.exports = function(app) {
 	plugin.start = function(options) {
         if (DEBUG & DEBUG_TRACE) console.log("plugin.start(%s)...", JSON.stringify(options));
 
-        options = validOptions(options);
+        options.modules = options.modules.filter(module => validateModule(
+            module,
+            options.devices.reduce((a, device) => { return((device.id == module.deviceid)?device:a); }, null),
+            (DEBUG & DEBUG_DIALOG)?(msg) => { log.E(msg, false); }:null,
+            (err) => { log.E(err, false); }
+        ));
 
-        options.modules.forEach(module => {
-            switch (module.cstring.split(':')[0]) {
-                case 'http': case 'https':
-                    break;
-                case 'tcp':
-                    var [ dummy, host, port ] = module.cstring.split(':');
-                    if (host && port) {
-                        module.connection = { state: false };
-                        module.connection.socket = new net.createConnection(port, host, () => {
-                            if (DEBUG & DEBUG_DIALOG) log.N("TCP socket opened for module " + module.id, false);
-                            module.connection.state = module.connection.socket;
-                            module.connection.socket.on('data', (buffer) => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("TCP data received from " + module.id + " [" + buffer.toString() + "]", false);
-                                processTcpData(buffer.toString(), module)
-                            });
-                            module.connection.socket.on('close', () => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("TCP socket closed for " + module.id);
-                                module.connection.state = false;
-                            });
-                        });
-                    } else {
-                        log.E("ignoring module '" + module.id + "' (bad or missing port/hostname)", false);
-                    }
-                    break;
-                case 'usb':
-                    var [ dummy, path ] = module.cstring.split(':');
-                    if (path) {
-                        module.connection = { state: false };
-                        module.connection.serialport = new SerialPort(path);
-                        module.connection.serialport.on('open', () => {
-                            if (DEBUG & DEBUG_DIALOG) log.N("serial port opened for module " + module.id, false);
-                            module.connection.state = module.connection.serialport;
-                            module.connection.parser = new ByteLength({ length: 1 });
-                            module.connection.serialport.pipe(module.connection.parser);
-                            module.connection.parser.on('data', (buffer) => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("serial data received from " + module.id + " [" + buffer.readUInt8(0) + "]", false);
-                                processUsbData((buffer)?buffer.readUInt8(0):null, module);
-                            });
-                            module.connection.serialport.on('close', () => {
-                                if (DEBUG & DEBUG_DIALOG) log.N("serial port closed for " + module.id);
-                                module.connection.state = false;
-                            });
-                            module.connection.state.write(module.device.protocols.filter(p => (p.id == 'usb'))[0]['status']);
-                        });
-                    } else {
-                        log.E("ignoring module '" + module.id + "' (bad or missing device path)", false);
-                    }
-                    break;
-                default:
-                    log.E("ignoring module '" + module.id + "' (invalid communication protocol)", false);
-                    break;
-            }
-            module.channels.forEach(channel => { channel.key = module.id + "." + channel.id; });
-        });
+        options.modules = options.modules.filter(module => connectModule(
+            module,
+            (DEBUG & DEBUG_DIALOG)?(msg) => { log.N(msg,false); }:null,
+            (err) => { log.E(err, false); }
+        ));
 
-        var configuredModuleCount = options.modules.filter(m => (m.connection)).length;
-        log.N("operating " + configuredModuleCount + " relay module" + ((configuredModuleCount == 1)?"":"s"));
+        if (options.modules.length) {
+            log.N("connected to " + options.modules.length + " relay module" + ((options.modules.length == 1)?"":"s"));
 
-        // Write channel meta data to the SignalK tree so that presentation
-        // applications can deploy it.
-        var deltaValues = options.modules.reduce((a,sb) => a.concat(sb.channels.map(ch => { return({
-            "path": "electrical.switches." + ch.key + ".meta",
-            "value": { "type": ch.type, "name": ch.name }
-        })})), []);
-        var delta = { "updates": [ { "source": { "device": plugin.id }, "values": deltaValues } ] };
-        app.handleMessage(plugin.id, delta);
+            // Write channel meta data to the SignalK tree so that presentation
+            // applications can deploy it.
+            var deltaValues = options.modules.reduce((a,sb) => a.concat(sb.channels.map(ch => { return({
+                "path": options.global.switchpath.replace('{m}', sb.id).replace('{c}', ch.id) + ".meta",
+                "value": { "type": ch.type, "name": ch.description }
+            })})), []);
+            var delta = { "updates": [ { "source": { "device": plugin.id }, "values": deltaValues } ] };
+            app.handleMessage(plugin.id, delta);
 
-        // Report module states
-        options.modules.forEach(module => {
+            // Report module states
+            // options.modules.forEach(module => {
             //module.port.write(module.statuscommand, err => { if (err) console.log("error writing status request"); });
-        });
+            //});
 
-        unsubscribes = (options.modules || []).reduce((a, module) => {
-            if (module.connection) {
-                var m = module;
-                module.channels.forEach(channel => {
-                    var c = channel;
-                    var triggerPath = ((c.trigger)?c.trigger:options.global.trigger).replace('{m}', m.id).replace('{c}', c.id);
-                    var triggerStates = (c.triggerstates)?c.triggerstates:options.global.triggerstates; 
-                    var triggerStream = getStreamFromPath(triggerPath, triggerStates);
-                    if (triggerStream) {
-                        a.push(triggerStream.onValue(v => {
-                            var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
-                            if (m.connection.state && command) m.connection.state.write(command);
-                            app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
-                                { "path": "electrical.switches." + c.key + ".state", "value": ((v == 0)?0:1) }
-                            ] }] });
-                        }));
-                    } else {
-                    }
-                });
-            }
-            return(a);
-        }, []);
-
+            unsubscribes = (options.modules || []).reduce((a, module) => {
+                if (module.connection) {
+                    var m = module;
+                    module.channels.forEach(channel => {
+                        var c = channel;
+                        var triggerPath = ((c.trigger)?c.trigger:options.global.trigger).replace('{m}', m.id).replace('{c}', c.id);
+                        var triggerStates = (c.triggerstates)?c.triggerstates:options.global.triggerstates; 
+                        var triggerStream = getStreamFromPath(triggerPath, triggerStates);
+                        if (triggerStream) {
+                            a.push(triggerStream.onValue(v => {
+                                var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
+                                if (m.connection.state && command) m.connection.state.write(command);
+                                app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
+                                    { "path": options.global.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
+                                ] }] });
+                            }));
+                        } else {
+                            log.E("unable to acquire stream for " + triggerPath, false);
+                        }
+                    });
+                }
+                return(a);
+            }, []);
+        } else {
+            log.N("stopped (no usable module configurations)");
+        }
     }
 
 	plugin.stop = function() {
@@ -157,46 +116,111 @@ module.exports = function(app) {
 		unsubscribes = [];
 	}
 
-    function validOptions(options) {
-        if (DEBUG & DEBUG_TRACE) console.log("validateOptions(%s)...", JSON.stringify(options));
-        var retval = options;
+    /*
+     * validateModule processersd a module definition, normalising property
+     * values, applying internal defaults and, as a last resort rejecting a
+     * badly formed or incomplete definition. If callbacks functions are
+     * supplied, then messages reporting actions taken will be passed back
+     * via these interfaces.
+     * @param module - the module definition to be processed.
+     * @param ncallback - callback for non-fatal notification messages.
+     * @param ecallback - callback for fatal error messages.
+     * @return - true if module is OK, otherwise false.
+     */ 
+    function validateModule(module, device, ncallback, ecallback) {
+        if (DEBUG & DEBUG_TRACE) console.log("validateModule(%s)...", JSON.stringify(module));
         const mF = [ "id", "deviceid", "cstring", "name" ];
         const mR = [ "id", "deviceid", "cstring" ];
         
-        options.modules = options.modules.reduce((a,m) => {
-            var retval = true;
-            mF.forEach(k => { m[k] = (m[k])?m[k].trim():null; if (m[k] == "") m[k] = null; });
-            mR.forEach(k => { if (!m[k]) { log.E("ignoring module '" + m.id + "' (missing '" + k + "' property)", false); retval = false; } });
+        var retval = true;
+        mF.forEach(k => { module[k] = (module[k])?module[k].trim():null; if (module[k] == "") module[k] = null; });
+        mR.forEach(k => { if (!module[k]) { ecallback("ignoring module '" + module.id + "' (missing '" + k + "' property)"); retval = false; } });
 
-            var device = options.devices.reduce((a,d) => { return((d.id == m.deviceid)?d:a); }, null);
-            if (device) {
-                var protocol = m.cstring.split(':')[0];
-                if (device.protocols.map(p => p.id).includes(protocol)) {
-                    if (m.channels.length == 0) {
-                        log.N("synthesising " + device.size + " channels for module '" + m.id, false);
-                        for (var i = 1; i <= device.size; i++) m.channels.push({ "index": i });
-                    }
-                    if (m.channels.length <= device.size) {
-                        m.channels.map(c => {
-                            c.id = (c.id)?c.id:("" + c.index);
-                            c.name = (c.name)?c.name:(m.id + '[' + c.id + ']'); 
-                        });
-                    } else {
-                        log.E("ignoring module '" + m.id + "' (zero or too many channels defined)", false); retval = false;
-                    } 
-                } else {
-                    log.E("ignoring module '" + m.id + "' (unsupported protocol '" + protocol + "')", false); retval = false;
+        if (device) {
+            var protocol = module.cstring.split(':')[0];
+            if (device.protocols.map(p => p.id).includes(protocol)) {
+                module.device = device;
+                if (module.channels.length == 0) {
+                    ncallback("synthesising " + device.size + " channels for module '" + module.id);
+                    for (var i = 1; i <= device.size; i++) module.channels.push({ "index": i });
                 }
+                if (module.channels.length <= device.size) {
+                    module.channels.map(c => {
+                        c.id = (c.id)?c.id:("" + c.index);
+                        c.name = (c.name)?c.name:(module.id + '[' + c.id + ']'); 
+                    });
+                } else {
+                    ecallback("ignoring module '" + module.id + "' (zero or too many channels defined)");
+                    retval = false;
+                } 
             } else {
-                log.E("ignoring module '" + m.id + "' (invalid device id)", false); retval = false;
+                ecallback("ignoring module '" + module.id + "' (unsupported protocol '" + protocol + "')");
+                retval = false;
             }
-            if (retval) {
-                m.device = device;
-                a.push(m);
-            }
-            return(a);
-        },[]);
-        return(options);
+        } else {
+            ecallback("ignoring module '" + module.id + "' (invalid device id)");
+            retval = false;
+        }
+        return(retval);
+    }
+
+    function connectModule(module, ncallback, ecallback) {
+        if (DEBUG & DEBUG_TRACE) log.N("connectModule(%s, %s, %s)...", module, ncallback, ecallback);
+        var retval = false;
+        switch (module.cstring.split(':')[0]) {
+            case 'http': case 'https':
+                break;
+            case 'tcp':
+                var [ dummy, host, port ] = module.cstring.split(':');
+                if (host && port) {
+                    module.connection = { state: false };
+                    module.connection.socket = new net.createConnection(port, host, () => {
+                        if (ncallback) ncallback("TCP socket opened for module " + module.id);
+                        module.connection.state = module.connection.socket;
+                        module.connection.socket.on('data', (buffer) => {
+                            if (ncallback) ncallback("TCP data received from " + module.id + " [" + buffer.toString() + "]");
+                            processTcpData(buffer.toString(), module)
+                        });
+                        module.connection.socket.on('close', () => {
+                            if (ecallback) ecallback("TCP socket closed for " + module.id);
+                            module.connection.state = false;
+                        });
+                    });
+                    retval = true;
+                } else {
+                    if (ecallback) ecallback("ignoring module '" + module.id + "' (bad or missing port/hostname)");
+                }
+                break;
+            case 'usb':
+                var [ dummy, path ] = module.cstring.split(':');
+                if (path) {
+                    module.connection = { state: false };
+                    module.connection.serialport = new SerialPort(path);
+                    module.connection.serialport.on('open', () => {
+                        if (ncallback) ncallback("serial port opened for module " + module.id);
+                        module.connection.state = module.connection.serialport;
+                        module.connection.parser = new ByteLength({ length: 1 });
+                        module.connection.serialport.pipe(module.connection.parser);
+                        module.connection.parser.on('data', (buffer) => {
+                            if (ncallback) ncallback("serial data received from " + module.id + " [" + buffer.readUInt8(0) + "]");
+                            processUsbData((buffer)?buffer.readUInt8(0):null, module);
+                        });
+                        module.connection.serialport.on('close', () => {
+                            if (ecallback) ecallback("serial port closed for " + module.id);
+                            module.connection.state = false;
+                        });
+                        //module.connection.state.write(module.device.protocols.filter(p => (p.id == 'usb'))[0]['status']);
+                    });
+                    retval = true;
+                } else {
+                    if (ecallback) ecallback("ignoring module '" + module.id + "' (bad or missing device path)");
+                }
+                break;
+            default:
+                if (ecallback) ecallback("ignoring module '" + module.id + "' (invalid communication protocol)");
+                break;
+        }
+        return(retval);
     }
 
     /*
@@ -237,7 +261,7 @@ module.exports = function(app) {
         let _path = path;
         var stream = null;
         if ((path != null) && ((stream = app.streambundle.getSelfStream(path)) !== null)) {
-            if (path.startsWith("notifications.")) stream = stream.map(v => ((v == null)?0:((states.contains(v.state))?1:0))).startWith(0);
+            if (path.startsWith("notifications.")) stream = stream.map(v => ((v == null)?0:((states.includes(v.state))?1:0))).startWith(0);
             stream = stream.skipDuplicates();
             if (debug) stream = stream.doAction(v => console.log("%s = %s", _path, v));
         }
@@ -255,7 +279,7 @@ module.exports = function(app) {
         if (state) {
             var deltaValues = [];
             for (var i = 0; i < module.channels.length; i++) {
-                deltaValues.push({ "path": "electrical.switches." + module.channels[i].key + ".state", "value": (state & module.channels[i].statusmask) });
+                deltaValues.push({ "path": "electrical.switches." + module.id + "." + module.channels[i].id + ".state", "value": (state & module.channels[i].statusmask) });
                 state = (state >> 1);
             }
             app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": deltaValues }] });

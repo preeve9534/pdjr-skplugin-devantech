@@ -166,7 +166,7 @@ The supplied value must be relative to the server's 'vessels.self.' path
 and should include the tokens '{m}' and '{c}' as placeholders which will be
 substituted by module id and channel id values for each connected module.
 Required.
-Defaults on installation to '.notifications.control.{m}.{c}'.
+Defaults on installation to 'notifications.control.{m}.{c}'.
 
 _Default notification trigger ON states_ specifies the notification states
 that will by default indicate a relay ON condition when a notification
@@ -175,6 +175,15 @@ The value supplied here is a default and can be overriden on a per-channel
 basis in the _Connected modules_ section.
 Required.
 Defaults on installation to [ 'alert', 'alarm', 'emergency' ].
+
+_Relay module switch path_ specifies the path where relay module channel state
+and meta keys will be created and updated.
+The supplied value must be relative to the server's 'vessels.self.' path
+and should include the tokens '{m}' and '{c}' as placeholders which will be
+substituted by module id and channel id values for each connected module.
+The default conforms to normal Signal K conventions.
+Required.
+Defaults on installation to 'electrical.switches.{m}.{c}'.
 
 _Polling interval_ specifies the interval in milliseconds at which the plugin
 should interrogate the state of attached relay modules.

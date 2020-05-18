@@ -16,6 +16,11 @@
                     "default": [ "alert", "alarm", "emergency" ],
                     "items": { "type": "string" }
                 },
+                "switchpath": {
+                    "title": "Relay module switch path",
+                    "type": "string",
+                    "default": "electrical.switches.{m}.{c}"
+                },
                 "pollinterval": {
                     "title": "Polling frequency in ms",
                     "type": "number",
@@ -33,7 +38,7 @@
                     "deviceid": { "title": "Device id", "type": "string" },
                     "id": { "title": "Signalk module id", "type": "string" },
                     "cstring": { "title": "Connection string", "type": "string" },
-                    "description": { "title": "Description", "type": "string" },
+                    "description": { "title": "Module description", "type": "string" },
                     "channels": {
                         "type": "array",
                         "default": [],
@@ -43,9 +48,9 @@
                             "properties": {
                                 "index": { "title": "Device relay index", "type": "number" },
                                 "id": { "title": "Signal K channel id", "type": "string" },
-                                "name": { "title": "Channel name", "type": "string" },
+                                "description": { "title": "Channel description", "type": "string" },
                                 "trigger": { "title": "Trigger path", "type": "string" },
-                                "triggerstates": { "title": "Notification ON states", "type": "array", "items": { "type": "string" } }
+                                "triggerstates": { "title": "Notification trigger ON states", "type": "array", "items": { "type": "string" } }
                             }
                         }
                     }
