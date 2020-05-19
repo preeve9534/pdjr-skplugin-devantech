@@ -81,8 +81,9 @@ Defaults zero.
 The default configuration file global snippet looks like this:
 ```
     "global": {
-        "trigger": ".notifications.control.{m}.{c}",
+        "trigger": "notifications.control.{m}.{c}",
         "triggerstates": [ "alert", "alarm", "emergency" ],
+        "switchpath": "electrical.switches.{m}.{c}",
         "pollinterval": 0
     }
 ```

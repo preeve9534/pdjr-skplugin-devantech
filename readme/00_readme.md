@@ -13,17 +13,17 @@ and
 [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
 sections of the Signal K documentation may provide helpful orientation.
 
-__signalk-devantech__ allows integration of relay modules made by the UK
-company Devantech Ltd into the Signal K domain.
-The plugin supports both wired (USB & ethernet) and wireless (WiFi) devices
-and may also support relay modules from other manufacturers which have
-a similar interfacing principle.
+__signalk-devantech__ allows wired and wireless relay modules made by the UK
+company Devantech Ltd to be operated and monitored by a Signal K node server.
+The plugin may support modules from other manufacturers which have a compatible
+interfacing principle.
 
-__signalk-devantech__ supports operation of connected relays by value changes
-on user-defined Signal K data keys, with easy integration with keys in the
-'electrical.switches.' and 'notifications.' trees.
-The state of connected relays is mapped through keys in the 'electrical.switches.'
-tree.
+Relays adopted by the plugin are operated by value changes on user-defined
+Signal K data keys with automatic integration with keys in the server's
+notifications.' tree.
+
+The state of connected relays is reflected through key values in the
+'electrical.switches.' tree.
 
 NOTE. NMEA 2000 switchbank relays (and switches) are natively supported by
 Signal K and are not compatible with __signalk-devantech__.

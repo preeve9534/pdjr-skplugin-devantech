@@ -13,17 +13,17 @@ and
 [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
 sections of the Signal K documentation may provide helpful orientation.
 
-__signalk-devantech__ allows integration of relay modules made by the UK
-company Devantech Ltd into the Signal K domain.
-The plugin supports both wired (USB & ethernet) and wireless (WiFi) devices
-and may also support relay modules from other manufacturers which have
-a similar interfacing principle.
+__signalk-devantech__ allows wired and wireless relay modules made by the UK
+company Devantech Ltd to be operated and monitored by a Signal K node server.
+The plugin may support modules from other manufacturers which have a compatible
+interfacing principle.
 
-__signalk-devantech__ supports operation of connected relays by value changes
-on user-defined Signal K data keys, with easy integration with keys in the
-'electrical.switches.' and 'notifications.' trees.
-The state of connected relays is mapped through keys in the 'electrical.switches.'
-tree.
+Relays adopted by the plugin are operated by value changes on user-defined
+Signal K data keys with automatic integration with keys in the server's
+notifications.' tree.
+
+The state of connected relays is reflected through key values in the
+'electrical.switches.' tree.
 
 NOTE. NMEA 2000 switchbank relays (and switches) are natively supported by
 Signal K and are not compatible with __signalk-devantech__.
@@ -41,67 +41,69 @@ them.
 
 ## Operating principle
 
-### Which Devantech relay products are supported?
+__signalk-devantech__ supports relay modules in the Devantech USB, ESP, ETH
+and dS model ranges and ships with an expandable library of device definitions 
+that covers modules that connect by USB, Wifi and wired ethernet. 
 
-__signalk-devantech__ supports the USB, ESP, ETH and dS model ranges providing
-connection by USB, Wifi and wired ethernet. 
+### Relay state information
 
-### How are relay channels identified?
+Each relay channel operated by the plugin is represented in Signal K by a key
+in the Signal K 'electrical.switches.' data tree.
+Incorporating a relay module into Signal K requires the user to supply a
+_module-id_ for the relay module and, optionally, a _channel-id_ for each
+channel.
 
-__signalk-devantech__ identifies each relay channel by a compound
-_relay identifier_ made up of user-defined module and channel identifiers.
-For example, if a module is configured with id = 'wifi0' and has a relay
-channel with id = '1', then the relay identifier will be 'wifi0.1'.
+__signalk-devantech__ creates two key entries in the Signal K data store for
+each configured relay channel.
 
-The relay identifier is used as part of all the default keynames associated
-with a configured channel.
+* State keys (for example 'electrical.switches._module-id_._channel-id_.state')
+  are updated in real time to reflect the state of the identified relay.
 
-### What key values are created by the plugin?
+* Meta keys (for example 'electrical.switches._module-id_._channel-id_.meta)
+  are created when the plugin starts with a value of the form
+  '{ "type": "relay", "name": _channel-name_ }',
+  where _channel-name_ is a user supplied value drawn from the plugin
+  configuration file.
+  Meta values are used by the plugin to elaborate log messages and may be used
+  by other agents to improve the legibility of their output.
 
-__signalk-devantech__ creates two key entries in the Signal K data store for each
-configured relay channel.
-
-State keys (for example 'electrical.switches.wifi0.1.state' are updated to
-reflect the state of the identified relay.
-
-Meta keys (for example 'electrical.switches.wifi0.1.meta) are created when the
-plugin starts with a value of the form ```{ "type": "relay", "name": "channel-name" }```,
-where _channel-name_ is a value drawn from the plugin configuration file.
-Meta values are used by the plugin to elaborate log messages and may be
-used by other agents to improve the legibility of their output.
-
-### How is a relay operated?
+### Relay operation
  
-Each relay is operated in response to value changes on a single data key
-referred to as a _trigger_.
+Each relay channel is operated in response to value changes on a single data
+key called a _trigger_.
 
-__signalk-devantech__ defaults to using a trigger path of
-'notifications.control._relay-identifier_ for each relay channel and
-interprets the presence of a notification on this key with a state other
-than 'normal' as ON.
+__signalk-devantech__ defaults to using a notification key as a trigger.
+Triggers can be defined by the plugin user explicitly or by pattern at both
+the global and/or channel level.
+The global default path defined in the stock module is
+'notifications.control._module-id_._channel-id_'.
 
-Pretty much all of the default behaviour can be overriden on a per-channel
-basis in the plugin configuration.
-In particulr, the trigger path can be set to any Signal K key and the plugin
-will interpret a key value of 0 as OFF and non-zero as ON.
+Notification state values are used to define the condition under which a relay
+operates and these can be adjusted by the user at both global and channel
+level.
+The stock module configuration defines 'alert', 'alarm' and 'emergency'
+notification states as signalling a relay 'ON' condition.
 
-### How is the state of module relay operation validated/reported?
+Iif notification triggers aren't appropriate for your application, then you
+can alternatively define pretty much any Signal K key which has a numerical
+value as a trigger: a value of 0 maps to relay 'OFF' and non-zero to ON.
 
-The stock firmware installed in the Robot Electronics relay modules is both
-limited and inconsistent in its state reporting capabilities.
+### Monitoring the integrity of relay operation
 
-|Protocol|Command confirmation|Status reporting|
-|usb     |No                  |Module polling  |
-|tcp     |Yes                 |Channel polling |
-|http    |Yes                 |None            | 
+The stock firmware installed in Devantech relay modules is both limited and
+inconsistent in its real-time state reporting capabilities.
+In general, relay operating commands are reported as succeeding or failing
+but continuous, real-time, monitoring is only available through polling
+initiated by the host application.
 
-Placing a polling burden on the Signal K server is not desirable: ideally the
-module firmware needs enhancing to support automatic status reporting at some
-regular interval and always immediately on a state change.
+Placing a polling burden on the Signal K server is not desirable and is almost
+certainly infeasible for any but the smallest scale implementations.
+__signalk-devantech__ supports polling, but its use is discouraged and it is
+disabled in the stock configuration.
 
-__signalk-devantech__ attempts to flag problems by checking the status of a
-channel immediately after a state change commmand is issued.  Inconsistencies
-result in an error message being written to the system log.
+Ideally the relay module firmware needs enhancing to support automatic status
+reporting at some regular interval and it may be that firmware modifications
+which implement this will become available over time.
 
 ## System requirements
 
@@ -199,8 +201,9 @@ Defaults zero.
 The default configuration file global snippet looks like this:
 ```
     "global": {
-        "trigger": ".notifications.control.{m}.{c}",
+        "trigger": "notifications.control.{m}.{c}",
         "triggerstates": [ "alert", "alarm", "emergency" ],
+        "switchpath": "electrical.switches.{m}.{c}",
         "pollinterval": 0
     }
 ```
@@ -436,5 +439,13 @@ configuration file.
 ```
 ## Usage
 
-__signalk-devantech__ has no run-time usage requirement.
+__signalk-devantech__ has no special run-time usage requirement.
+
+You can monitor the plugin's manipulation of the Signal K data tree by
+reviewing the server state model in a web browser.
+
+Status and error messages are written to the Signal K server logs.
+
+## Devantech
+
 
