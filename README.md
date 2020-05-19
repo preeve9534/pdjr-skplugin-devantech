@@ -18,9 +18,9 @@ company Devantech Ltd to be operated and monitored by a Signal K node server.
 The plugin may support modules from other manufacturers which have a compatible
 interfacing principle.
 
-Relays adopted by the plugin are operated by value changes on user-defined
-Signal K data keys with automatic integration with keys in the server's
-notifications.' tree.
+The plugin is configured by the user to monitor an arbitrary Signal K key for
+each adopted relay channel: changes in this key value operate the associated
+relay.
 
 The state of connected relays is reflected through key values in the
 'electrical.switches.' tree.
@@ -36,9 +36,12 @@ the extent to which error detection and operational integrity measures can be
 implemented (see the 'Devantech relay modules' section below for more
 information).
 Given these limitations, the devices are inexpensive, well built and reliable:
-just give some thought to  what you use them for and where and how you deploy
+just give some thought to what you use them for and where and how you deploy
 them.
 
+DISCLAIMER. Devantech Ltd kindly supported this development by making some
+of its relay module products available to the author for evaluation.
+The author has no substantive relationship with or interest in Devantech Ltd.
 ## Operating principle
 
 __signalk-devantech__ supports relay modules in the Devantech USB, ESP, ETH
