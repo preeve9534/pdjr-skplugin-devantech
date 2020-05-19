@@ -22,7 +22,7 @@ The plugin is configured by the user to monitor an arbitrary Signal K key for
 each adopted relay channel: changes in this key value operate the associated
 relay.
 
-The state of connected relays is reflected through key values in the
+The plugin reports the state of connected relays through key values in the
 'electrical.switches.' tree.
 
 NOTE. NMEA 2000 switchbank relays (and switches) are natively supported by
