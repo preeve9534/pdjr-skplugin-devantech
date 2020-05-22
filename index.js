@@ -82,39 +82,8 @@ module.exports = function(app) {
             //module.port.write(module.statuscommand, err => { if (err) console.log("error writing status request"); });
             //});
 
-            unsubscribes = (options.modules || []).reduce((a, module) => {
-                if (module.connection) {
-                    var m = module;
-                    module.channels.forEach(channel => {
-                        var c = channel;
-                        var triggerPath = ((c.trigger)?c.trigger:options.global.trigger).replace('{m}', m.id).replace('{c}', c.id);
-                        var triggerStates = (c.triggerstates)?c.triggerstates:options.global.triggerstates; 
-                        var triggerStream = getStreamFromPath(triggerPath, triggerStates);
-                        if (triggerStream) {
-                            a.push(triggerStream.onValue(v => {
-                                if (m.connection.state) {
-                                    var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
-                                    if (command) {
-                                        m.connection.state.write(command);
-                                        app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
-                                            { "path": options.global.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
-                                        ] }] });
-                                    } else {
-                                        log.E("relay operation failed (unable to recover " + ((v == 0)?"OFF":"ON") + " command for " + m.id + "." + c.id + ")", false);
-                                    }
-                                } else {
-                                    log.E("relay operation failed (module connection was closed (" + m.id + "))", false);
-                                }
-                            }));
-                        } else {
-                            log.E("unable to acquire stream for " + triggerPath, false);
-                        }
-                    });
-                }
-                return(a);
-            }, []);
         } else {
-            log.N("stopped (no usable module configurations)");
+            log.N("there are no usable module configurations");
         }
     }
 
@@ -124,31 +93,46 @@ module.exports = function(app) {
 		unsubscribes = [];
 	}
 
-    function subscribe(module) {
+    /**
+     * Subscribes an anonymous action function to each of the channel trigger
+     * paths in <module>. The action function serves to operate the channel
+     * relay and to register the consequent state change in Signal K by issuing
+     * an appropriate delta.
+     * The unsubsubscribe function returned by trigger subscription is added to
+     * the channel as a new property 'unsubscribe' and is also appended to the
+     * global unsubscribes array.  In this way, an unrecoverable failure in
+     * module communication can easily unsubscribe affected channels from
+     * Signal K updates. 
+     * @param module - the module whose channel triggers should be subscribed.
+     * @param options - plugin global options.
+     */
+    function subscribe(module, options) {
         var m = module;
         module.channels.forEach(channel => {
             var c = channel;
-            var triggerPath = ((c.trigger)?c.trigger:options.global.trigger).replace('{m}', m.id).replace('{c}', c.id);
-            var triggerStates = (c.triggerstates)?c.triggerstates:options.global.triggerstates; 
+            var triggerPath = ((c.trigger)?c.trigger:options.trigger).replace('{m}', m.id).replace('{c}', c.id);
+            var triggerStates = (c.triggerstates)?c.triggerstates:options.triggerstates; 
             var triggerStream = getStreamFromPath(triggerPath, triggerStates);
-            var triggerCommand = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
-            if (triggerStream && triggerCommand) {
-                unsubscribes.push({
-                    "key": m.id + "." + c.id,
-                    "function": triggerStream.onValue(v => {
-                        m.connection.state.write(triggerCommand);
-                        app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
-                            { "path": options.global.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
-                        ] }] });
-                        } else {
-                            log.E("relay operation failed (unable to recover " + ((v == 0)?"OFF":"ON") + " command for " + m.id + "." + c.id + ")", false);
-                        }
-                }));
+            if (triggerStream) {
+                c.unsubscribe = triggerStream.onValue(v => {
+                    var triggerCommand = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
+                    m.connection.stream.write(triggerCommand);
+                    app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
+                        { "path": options.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
+                    ] }] });
+                });
+                unsubscribes.push(c.unsubscribe);
             } else {
                 log.E("unable to acquire stream for " + triggerPath, false);
             }
         });
     }
+
+    function unsubscribe(module) {
+        var ufs = module.channels.map(channel => channel.unsubscribe);
+        unsubscribes = unsubscribes.filter(f => { if (ufs.contains(f)) { f(); return(false); } else { return(true); } });
+    }
+        
 
     /*
      * validateModule processes a module definition, normalising property
@@ -221,18 +205,20 @@ module.exports = function(app) {
             case 'tcp':
                 var [ dummy, host, port ] = module.cstring.split(':');
                 if (host && port) {
-                    module.connection = { state: false };
+                    module.connection = { stream: false };
                     module.connection.socket = new net.createConnection(port, host, () => {
                         if (ncallback) ncallback("TCP socket opened for module " + module.id);
-                        module.connection.state = module.connection.socket;
+                        module.connection.stream = module.connection.socket;
                         module.connection.socket.on('data', (buffer) => {
                             if (ncallback) ncallback("TCP data received from " + module.id + " [" + buffer.toString() + "]");
                             processTcpData(buffer.toString(), module)
                         });
                         module.connection.socket.on('close', () => {
                             if (ecallback) ecallback("TCP socket closed for " + module.id);
-                            module.connection.state = false;
+                            module.connection.stream = false;
+                            unsubscribe(module);
                         });
+                        subscribe(module, options);
                     });
                     retval = true;
                 } else {
@@ -242,11 +228,11 @@ module.exports = function(app) {
             case 'usb':
                 var [ dummy, path ] = module.cstring.split(':');
                 if (path) {
-                    module.connection = { state: false };
+                    module.connection = { stream: false };
                     module.connection.serialport = new SerialPort(path);
                     module.connection.serialport.on('open', () => {
                         if (ncallback) ncallback("serial port opened for module " + module.id);
-                        module.connection.state = module.connection.serialport;
+                        module.connection.stream = module.connection.serialport;
                         module.connection.parser = new ByteLength({ length: 1 });
                         module.connection.serialport.pipe(module.connection.parser);
                         module.connection.parser.on('data', (buffer) => {
@@ -255,12 +241,12 @@ module.exports = function(app) {
                         });
                         module.connection.serialport.on('close', () => {
                             if (ecallback) ecallback("serial port closed for " + module.id);
-                            module.connection.state = false;
+                            module.connection.stream = false;
                             unsubscribe(module);
                         });
-                        module.subscribe(module);
+                        subscribe(module, options);
                         var statusCommand = module.device.protocols.reduce((a,p) => { return((p.id == 'usb')?p['status']:a); }, null);
-                        if (statusCommand) module.connection.state.write(statusCommand);
+                        if (statusCommand) module.connection.stream.write(statusCommand);
                     });
                     retval = true;
                 } else {
