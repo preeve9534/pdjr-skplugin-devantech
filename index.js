@@ -24,7 +24,7 @@ const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
 const DEBUG_OFF = 0;
 const DEBUG_TRACE = 1;
 const DEBUG_DIALOG = 2;
-const DEBUG = (DEBUG_TRACE & DEBUG_DIALOG);
+const DEBUG = DEBUG_DIALOG;
 
 module.exports = function(app) {
 	var plugin = {};
@@ -61,7 +61,7 @@ module.exports = function(app) {
         options.modules = options.modules.filter(module => connectModule(
             module,
             options.global,
-            (DEBUG & DEBUG_DIALOG)?(msg) => { log.N(msg,false); }:null,
+            (DEBUG & DEBUG_DIALOG)?(msg) => { log.N(msg, false); }:null,
             (err) => { log.E(err, false); }
         ));
 
@@ -236,7 +236,7 @@ module.exports = function(app) {
                         module.connection.parser = new ByteLength({ length: 1 });
                         module.connection.serialport.pipe(module.connection.parser);
                         module.connection.parser.on('data', (buffer) => {
-                            if (ncallback) ncallback("serial data received from " + module.id + " [" + buffer.readUInt8(0) + "]");
+                            if (ncallback) ncallback("serial data received from " + module.id);
                             processUsbData(buffer, module, options.switchpath);
                         });
                         module.connection.serialport.on('close', () => {
@@ -327,7 +327,7 @@ module.exports = function(app) {
      * @switchpath - path into the electrical.switches tree where updates should be written.
      */
     function processUsbData(buffer, module, switchpath) {
-        if (DEBUG & DEBUG_TRACE) console.log("processUsbData(%s,%s,%s)...", JSON.stringify(buffer), module, switchpath);
+        /*if (DEBUG & DEBUG_TRACE)*/ console.log("processUsbData(%s,%s,%s)...", JSON.stringify(buffer), module, switchpath);
 
         var state = (buffer)?buffer.readUInt8(0):null;
         if (switchpath) {
@@ -341,13 +341,6 @@ module.exports = function(app) {
             }
             app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": deltaValues }] });
         }
-    }
-
-    function waitForFlag(flagObject, flagName, timeout=500) {
-        const poll = resolve => {
-            if (flagObject[flagName]) { resolve(); } else { setTimeout(_ => poll(resolve), timeout); }
-        }
-        return new Promise(poll);
     }
 
     return(plugin);

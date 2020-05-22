@@ -7,7 +7,7 @@
             "required": [ "trigger", "triggerstates", "switchpath", "pollinterval" ],
             "properties": {
                 "trigger": {
-                    "title": "Default relay trigger path",
+                    "title": "Default trigger path",
                     "type": "string",
                     "default": "notifications.control.{m}.{c}"
                 },

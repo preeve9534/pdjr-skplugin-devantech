@@ -1,15 +1,13 @@
 {
     "global": {
+        "ui:description": "The 'Default trigger path' and 'Default notification trigger ON states' properties can be overridden on a per-channel basis in subsequent module definitions.",
         "ui:field": "collapsible",
         "collapse": {
             "field": "ObjectField",
             "wrapClassName": "panel-group"
         },
         "trigger": { "classNames": "col-sm-6" },
-        "triggerstates": {
-            "classNames": "col-sm-6",
-            "ui:widget": "checkboxes"
-        },
+        "triggerstates": { "classNames": "col-sm-6", "ui:widget": "checkboxes" },
         "switchpath": { "classNames": "col-sm-6" },
         "pollinterval": { "classNames": "col-sm-6" }
     },
