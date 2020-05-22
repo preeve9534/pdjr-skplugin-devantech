@@ -60,6 +60,9 @@ certainly infeasible for any but the smallest scale implementations.
 __signalk-devantech__ supports polling, but its use is discouraged and it is
 disabled in the stock configuration.
 
+The plugin always attempts to determine and report relay state when it
+initially connects to a relay module.
+
 Ideally the relay module firmware needs enhancing to support automatic status
 reporting at some regular interval and it may be that firmware modifications
 which implement this will become available over time.

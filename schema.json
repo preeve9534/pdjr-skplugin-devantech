@@ -2,11 +2,12 @@
     "type": "object",
     "properties": {
         "global": {
+            "title": "Global settings",
             "type": "object",
-            "required": [ "defaultnotificationpath", "defaultnotificationonstates", "pollinterval" ],
+            "required": [ "trigger", "triggerstates", "switchpath", "pollinterval" ],
             "properties": {
                 "trigger": {
-                    "title": "Default path for relay triggers",
+                    "title": "Default relay trigger path",
                     "type": "string",
                     "default": "notifications.control.{m}.{c}"
                 },
@@ -14,7 +15,11 @@
                     "title": "Default notification trigger 'ON' states",
                     "type": "array",
                     "default": [ "alert", "alarm", "emergency" ],
-                    "items": { "type": "string" }
+                    "items": {
+                        "type": "string",
+                        "enum": [ "normal", "alert", "alarm", "emergency" ]
+                    },
+                    "uniqueItems": true
                 },
                 "switchpath": {
                     "title": "Relay module switch path",
@@ -22,42 +27,14 @@
                     "default": "electrical.switches.{m}.{c}"
                 },
                 "pollinterval": {
-                    "title": "Polling frequency in ms",
+                    "title": "Switch polling frequency in ms",
                     "type": "number",
                     "default": 0
                 }
             }
         },
-        "modules" : {
-            "type": "array",
-            "default": [],
-            "items": {
-                "type": "object",
-                "required": [ "id", "deviceid", "cstring", "channels" ],
-                "properties": {
-                    "deviceid": { "title": "Device id", "type": "string" },
-                    "id": { "title": "Signalk module id", "type": "string" },
-                    "cstring": { "title": "Connection string", "type": "string" },
-                    "description": { "title": "Module description", "type": "string" },
-                    "channels": {
-                        "type": "array",
-                        "default": [],
-                        "items": {
-                            "type": "object",
-                            "required": [ "index" ],
-                            "properties": {
-                                "index": { "title": "Device relay index", "type": "number" },
-                                "id": { "title": "Signal K channel id", "type": "string" },
-                                "description": { "title": "Channel description", "type": "string" },
-                                "trigger": { "title": "Trigger path", "type": "string" },
-                                "triggerstates": { "title": "Notification trigger ON states", "type": "array", "items": { "type": "string" } }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "devices": {
+            "title": "Device definitions",
             "type": "array",
             "items": {
                 "type": "object",
@@ -104,6 +81,36 @@
                     ]
                 }
             ]
+        },
+        "modules" : {
+            "title": "Module definitions",
+            "type": "array",
+            "default": [],
+            "items": {
+                "type": "object",
+                "required": [ "id", "deviceid", "cstring", "channels" ],
+                "properties": {
+                    "deviceid": { "title": "Device id", "type": "string" },
+                    "id": { "title": "Signalk module id", "type": "string" },
+                    "cstring": { "title": "Connection string", "type": "string" },
+                    "description": { "title": "Module description", "type": "string" },
+                    "channels": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": [ "index" ],
+                            "properties": {
+                                "index": { "title": "Device relay index", "type": "number" },
+                                "id": { "title": "Signal K channel id", "type": "string" },
+                                "description": { "title": "Channel description", "type": "string" },
+                                "trigger": { "title": "Trigger path", "type": "string" },
+                                "triggerstates": { "title": "Notification trigger ON states", "type": "array", "items": { "type": "string" } }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -29,7 +29,6 @@ const DEBUG = (DEBUG_TRACE & DEBUG_DIALOG);
 module.exports = function(app) {
 	var plugin = {};
 	var unsubscribes = [];
-    var modules = {};
 
 	plugin.id = "devantech";
 	plugin.name = "Devantech relay module plugin";
@@ -61,6 +60,7 @@ module.exports = function(app) {
 
         options.modules = options.modules.filter(module => connectModule(
             module,
+            options.global,
             (DEBUG & DEBUG_DIALOG)?(msg) => { log.N(msg,false); }:null,
             (err) => { log.E(err, false); }
         ));
@@ -92,11 +92,19 @@ module.exports = function(app) {
                         var triggerStream = getStreamFromPath(triggerPath, triggerStates);
                         if (triggerStream) {
                             a.push(triggerStream.onValue(v => {
-                                var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
-                                if (m.connection.state && command) m.connection.state.write(command);
-                                app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
-                                    { "path": options.global.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
-                                ] }] });
+                                if (m.connection.state) {
+                                    var command = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
+                                    if (command) {
+                                        m.connection.state.write(command);
+                                        app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
+                                            { "path": options.global.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
+                                        ] }] });
+                                    } else {
+                                        log.E("relay operation failed (unable to recover " + ((v == 0)?"OFF":"ON") + " command for " + m.id + "." + c.id + ")", false);
+                                    }
+                                } else {
+                                    log.E("relay operation failed (module connection was closed (" + m.id + "))", false);
+                                }
                             }));
                         } else {
                             log.E("unable to acquire stream for " + triggerPath, false);
@@ -116,10 +124,36 @@ module.exports = function(app) {
 		unsubscribes = [];
 	}
 
+    function subscribe(module) {
+        var m = module;
+        module.channels.forEach(channel => {
+            var c = channel;
+            var triggerPath = ((c.trigger)?c.trigger:options.global.trigger).replace('{m}', m.id).replace('{c}', c.id);
+            var triggerStates = (c.triggerstates)?c.triggerstates:options.global.triggerstates; 
+            var triggerStream = getStreamFromPath(triggerPath, triggerStates);
+            var triggerCommand = getCommand(m.device, m.cstring.split(':',1)[0], c.index, ((v == 0)?0:1)); 
+            if (triggerStream && triggerCommand) {
+                unsubscribes.push({
+                    "key": m.id + "." + c.id,
+                    "function": triggerStream.onValue(v => {
+                        m.connection.state.write(triggerCommand);
+                        app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
+                            { "path": options.global.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
+                        ] }] });
+                        } else {
+                            log.E("relay operation failed (unable to recover " + ((v == 0)?"OFF":"ON") + " command for " + m.id + "." + c.id + ")", false);
+                        }
+                }));
+            } else {
+                log.E("unable to acquire stream for " + triggerPath, false);
+            }
+        });
+    }
+
     /*
-     * validateModule processersd a module definition, normalising property
+     * validateModule processes a module definition, normalising property
      * values, applying internal defaults and, as a last resort rejecting a
-     * badly formed or incomplete definition. If callbacks functions are
+     * badly formed or incomplete definition. If callback functions are
      * supplied, then messages reporting actions taken will be passed back
      * via these interfaces.
      * @param module - the module definition to be processed.
@@ -164,8 +198,22 @@ module.exports = function(app) {
         return(retval);
     }
 
-    function connectModule(module, ncallback, ecallback) {
-        if (DEBUG & DEBUG_TRACE) log.N("connectModule(%s, %s, %s)...", module, ncallback, ecallback);
+    /**
+     * connectModule attempts to connect a module to its specified device
+     * using the connection information supplied in the module's cstring
+     * property. If the attempt appears to be successful, then a connection
+     * object is added to the module and the function returns true. If a
+     * problem is encountered then the function returns false. If callbacks
+     * functions are supplied, then messages reporting actions taken and
+     * problems encountered will be passed back via these interfaces.
+     * @param module - the module definition to be processed.
+     * @param options - the options.global object.
+     * @param ncallback - callback for non-fatal notification messages.
+     * @param ecallback - callback for fatal error messages.
+     * @return - true if module is OK, otherwise false.
+     */
+    function connectModule(module, options, ncallback, ecallback) {
+        if (DEBUG & DEBUG_TRACE) log.N("connectModule(%s, %s, %s, %s)...", module, JSON.stringify(options), ncallback, ecallback);
         var retval = false;
         switch (module.cstring.split(':')[0]) {
             case 'http': case 'https':
@@ -203,13 +251,16 @@ module.exports = function(app) {
                         module.connection.serialport.pipe(module.connection.parser);
                         module.connection.parser.on('data', (buffer) => {
                             if (ncallback) ncallback("serial data received from " + module.id + " [" + buffer.readUInt8(0) + "]");
-                            processUsbData((buffer)?buffer.readUInt8(0):null, module);
+                            processUsbData(buffer, module, options.switchpath);
                         });
                         module.connection.serialport.on('close', () => {
                             if (ecallback) ecallback("serial port closed for " + module.id);
                             module.connection.state = false;
+                            unsubscribe(module);
                         });
-                        //module.connection.state.write(module.device.protocols.filter(p => (p.id == 'usb'))[0]['status']);
+                        module.subscribe(module);
+                        var statusCommand = module.device.protocols.reduce((a,p) => { return((p.id == 'usb')?p['status']:a); }, null);
+                        if (statusCommand) module.connection.state.write(statusCommand);
                     });
                     retval = true;
                 } else {
@@ -223,15 +274,16 @@ module.exports = function(app) {
         return(retval);
     }
 
-    /*
-     * Get a relay control command for switching <channel> to <state> using
-     * <protocol> from <device>.
+    /**
+     * getCommand processes a <device> definition and returns the relay control
+     * command that is specified for for switching <channel> to * <state> using
+     * <protocol>.
      *  
      * @param device - device definition from which to pull the command.
      * @param protocol - the protocol to use for communication with device.
      * @param channel - the channel to be operated.
      * @param state - the state to which the relay should be set (0 or 1).
-     * @return - the required commadn string or null if recovery fails.
+     * @return - the required command string or null if command recovery fails.
      */
     function getCommand(device, protocol, channel, state) {
         if (DEBUG & DEBUG_TRACE) console.log("getCommand(%s,%s,%s,%s)...", device, protocol, channel, state);
@@ -249,21 +301,25 @@ module.exports = function(app) {
     }
 
     /**
-     * getStreamFromPath returns a data stream for a specified <path>. The
-     * data stream is expected to return a stream of 0s and 1s indicating a
-     * logical state and some special processing is provided to turn
-     * notification paths into numerical values based upon notification alert
-     * state.
+     * getStreamFromPath returns a data stream for a specified <path> in the
+     * Signal K host application defined by the <app> global, or null if
+     * <app> cannot return a stream for <path>. Streams derived from a
+     * notification stream have a filter applied which will convert values
+     * appearing on the stream from a notification object to a truth value
+     * (1 or 0) dependant upon whether or not the notification.state value is
+     * a member of the <states> array.
+     * @param path - Signal K data path for which a stream is required.
+     * @param states - optional array of notification.state values.
+     * @param dcallback - optional callback function which will be passed each value as it arrives on any generated stream.
      */ 
-    function getStreamFromPath(path, states, debug=false) {
+    function getStreamFromPath(path, states, dcallback) {
         if (DEBUG & DEBUG_TRACE) console.log("getStreamFromPath(%s,%s,%s)...", path, states, debug);
 
-        let _path = path;
         var stream = null;
         if ((path != null) && ((stream = app.streambundle.getSelfStream(path)) !== null)) {
             if (path.startsWith("notifications.")) stream = stream.map(v => ((v == null)?0:((states.includes(v.state))?1:0))).startWith(0);
             stream = stream.skipDuplicates();
-            if (debug) stream = stream.doAction(v => console.log("%s = %s", _path, v));
+            if (dcallback) stream = stream.doAction(v => dcallback(v));
         }
         return(stream);
     }
@@ -273,17 +329,39 @@ module.exports = function(app) {
         if (data == "fail") log.E("TCP command failure on module " + module.id);
     }
 
-    function processUsbData(state, module) {
-        if (DEBUG & DEBUG_TRACE) console.log("processUsbData(%d,%s)...", state, module);
+    /**
+     * processUsbData assumes <buffer> to be a byte sequence describing the
+     * state of relay channels contained in <module>. The content of
+     * <buffer> must be in the format used with the Devantech USB protocol.
+     * The function extracts any content from <buffer> which describes relay
+     * channel states in <module> and writes delta value updates into the
+     * Signal K data module at the location identified by <switchpath>.
+     * @param buffer - data for processing.
+     * @param module - module to which the content of <buffer> relates.
+     * @switchpath - path into the electrical.switches tree where updates should be written.
+     */
+    function processUsbData(buffer, module, switchpath) {
+        if (DEBUG & DEBUG_TRACE) console.log("processUsbData(%s,%s,%s)...", JSON.stringify(buffer), module, switchpath);
 
-        if (state) {
+        var state = (buffer)?buffer.readUInt8(0):null;
+        if (switchpath) {
             var deltaValues = [];
             for (var i = 0; i < module.channels.length; i++) {
-                deltaValues.push({ "path": "electrical.switches." + module.id + "." + module.channels[i].id + ".state", "value": (state & module.channels[i].statusmask) });
+                deltaValues.push({
+                    "path": switchpath.replace('{m}', module.id).replace('{c}', module.channels[i].id) + ".state",
+                    "value": (state & module.channels[i].statusmask)
+                });
                 state = (state >> 1);
             }
             app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": deltaValues }] });
         }
+    }
+
+    function waitForFlag(flagObject, flagName, timeout=500) {
+        const poll = resolve => {
+            if (flagObject[flagName]) { resolve(); } else { setTimeout(_ => poll(resolve), timeout); }
+        }
+        return new Promise(poll);
     }
 
     return(plugin);

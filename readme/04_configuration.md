@@ -40,8 +40,8 @@ GUI by an expandable tab.
 
 The properties under this tab influence the overall behaviour of the plugin.
 
-_Default trigger path_ specifies which Signal K data keys should normally be
-used by the plugin as relay triggers.
+_Default relay trigger path_ specifies which Signal K data keys should normallys
+be used by the plugin as relay triggers.
 The value supplied here is a default and can be overriden on a per-channel
 basis in the _Connected modules_ section.
 The supplied value must be relative to the server's 'vessels.self.' path
@@ -67,10 +67,10 @@ The default conforms to normal Signal K conventions.
 Required.
 Defaults on installation to 'electrical.switches.{m}.{c}'.
 
-_Polling interval_ specifies the interval in milliseconds at which the plugin
-should interrogate the state of attached relay modules.
-Only devices in _Device definitions_ which define a __status__ property will
-actually be polled at this interval.
+_Switch polling interval in ms_ specifies the interval in milliseconds at
+which the plugin should interrogate the state of attached relay modules.
+Only devices in _Device definitions_ which also define a _Module statuss
+request command property_ will actually be polled at this interval.
 If this value is omitted or set to zero then all polling of connected modules
 is disabled.
 Polling should only be enabled cautiously and conservatively because of its

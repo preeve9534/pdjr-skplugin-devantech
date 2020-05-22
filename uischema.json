@@ -1,28 +1,27 @@
 {
-    "defaulttriggerpath": {
-        "classNames": "col-sm-12"
-    },
-    "modules": {
-        "items": {
-            "id": { "classNames": "col-sm-3" },
-            "deviceid": { "classNames": "col-sm-3" },
-            "cstring": { "classNames": "col-sm-6" },
-            "description": { "classNames": "col-sm-12" },
-	        "channels": {
-                "classNames": "col-sm-12",
-                "items": {
-                    "index": { "classNames": "col-sm-3" },
-                    "id": { "classNames": "col-sm-3" },
-                    "name": { "classNames": "col-sm-6" },
-                    "trigger": { "classNames": "col-sm-12" }
-                }
-            }
-        }
+    "global": {
+        "ui:field": "collapsible",
+        "collapse": {
+            "field": "ObjectField",
+            "wrapClassName": "panel-group"
+        },
+        "trigger": { "classNames": "col-sm-6" },
+        "triggerstates": {
+            "classNames": "col-sm-6",
+            "ui:widget": "checkboxes"
+        },
+        "switchpath": { "classNames": "col-sm-6" },
+        "pollinterval": { "classNames": "col-sm-6" }
     },
     "devices": {
+        "ui:field": "collapsible",
+        "collapse": {
+            "field": "ArrayField",
+            "wrapClassName": "panel-group"
+        },
         "items": {
-            "id": { "classNames": "col-sm-6" },
-            "size": { "classNames": "col-sm-6" },
+            "id": { "classNames": "col-sm-8" },
+            "size": { "classNames": "col-sm-4" },
             "protocols": {
                 "classNames": "col-sm-12",
                 "items": {
@@ -30,6 +29,13 @@
                     "status": { "classNames": "col-sm-8" }
                 }
             }
+        }
+    },
+    "modules": {
+        "ui:field": "collapsible",
+        "collapse": {
+            "field": "ArrayField",
+            "wrapClassName": "panel-group"
         }
     }
 }
