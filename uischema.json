@@ -12,13 +12,14 @@
         "pollinterval": { "classNames": "col-sm-6" }
     },
     "devices": {
+        "ui:description": "This section defines the hardware and communication characteristics of devices which can be used by the plugin.",  
         "ui:field": "collapsible",
         "collapse": {
             "field": "ArrayField",
             "wrapClassName": "panel-group"
         },
         "items": {
-            "id": { "classNames": "col-sm-8" },
+            "id": { "classNames": "col-sm-8", "ui:help": "If this definition is common to multiple devices, enter a space-separated list of identifiers." },
             "size": { "classNames": "col-sm-4" },
             "protocols": {
                 "classNames": "col-sm-12",
@@ -34,6 +35,11 @@
         "collapse": {
             "field": "ArrayField",
             "wrapClassName": "panel-group"
-        }
+        },
+        "items": {
+            "id": { "classNames": "col-sm-4" },
+            "description": { "classNames": "col-sm-8" },
+            "deviceid": { "classNames": "col-sm-4" },
+            "cstring": { "classNames": "col-sm-8", "ui:help": "Options are 'usb:device' or '[password]@tcp:host:port'" }
     }
 }

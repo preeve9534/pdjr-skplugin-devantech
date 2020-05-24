@@ -38,6 +38,7 @@
             "type": "array",
             "items": {
                 "type": "object",
+                "required" : [ "id", "size", "protocols" ],
                 "properties": {
                     "id": { "title": "Device identifier", "type": "string" },
                     "size": { "title": "Number of relay channels", "type": "number" },
@@ -49,6 +50,7 @@
                             "properties": {
                                 "id": { "title": "Protocol id", "type": "string", "enum": [ "http", "https", "tcp", "usb" ] },
                                 "status": { "title": "Status command", "type": "string" },
+                                "password": { "title": "Password token", "type": "string" },
                                 "commands" : {
                                     "type": "array",
                                     "items": {
@@ -67,7 +69,7 @@
             },
             "default": [
                 {
-                    "id": "USB-RELAY02",
+                    "id": "USB-RLY02-SN USB-RLY02 USB-RLY82 ",
                     "size": 2,
                     "protocols": [
                         {
@@ -78,6 +80,63 @@
                                 { "channel": 2, "on": "f", "off": "p" }
                             ]
                         }
+                    ]
+                },
+                {
+                    "id": "USB-RLY08B USB-RLY16 USB-RLY16L USB-OPTO-RLY88 USB-OPTO-RLY816",
+                    "size": 8,
+                    "protocols": [
+                        {
+                            "id": "usb",
+                            "status": "[",
+                            "commands": [
+                                { "channel": 1, "on": "e", "off": "o" },
+                                { "channel": 2, "on": "f", "off": "p" },
+                                { "channel": 3, "on": "g", "off": "q" },
+                                { "channel": 4, "on": "h", "off": "r" },
+                                { "channel": 5, "on": "i", "off": "s" },
+                                { "channel": 6, "on": "j", "off": "t" },
+                                { "channel": 7, "on": "k", "off": "u" },
+                                { "channel": 8, "on": "l", "off": "v" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "ETH002",
+                    "size": 2,
+                    "status": "",
+                    "macros": "P(y{p})",
+                    "commands": [
+                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    ]
+                },
+                {
+                    "id": "ETH044",
+                    "size": 4,
+                    "status": "",
+                    "macros": "P(y{p})",
+                    "macros": [ { "name": "P", "value": "y{p}" } ],
+                    "commands": [
+                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    ]
+                },
+                {
+                    "id": "ETH008",
+                    "size": 8,
+                    "status": "",
+                    "macros": "P(y{p})",
+                    "commands": [
+                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    ]
+                },
+                {
+                    "id": "ETH8020",
+                    "size": 20,
+                    "status": "",
+                    "macros": "P(y{p})",
+                    "commands": [
+                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
                     ]
                 }
             ]
@@ -90,10 +149,10 @@
                 "type": "object",
                 "required": [ "id", "deviceid", "cstring", "channels" ],
                 "properties": {
-                    "deviceid": { "title": "Device id", "type": "string" },
                     "id": { "title": "Signalk module id", "type": "string" },
-                    "cstring": { "title": "Connection string", "type": "string" },
                     "description": { "title": "Module description", "type": "string" },
+                    "deviceid": { "title": "Device id", "type": "string" },
+                    "cstring": { "title": "Connection string", "type": "string" },
                     "channels": {
                         "type": "array",
                         "default": [],

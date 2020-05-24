@@ -20,7 +20,20 @@ implementation was developed.
 
 |Relay module   |No of relays|Connection|Protocols|
 |:--------------|:----------:|:--------:|:-------:|
-|()[USB-RELAY02]|2           |USB       |usb      |
+|USB-RLY02-SN   |2           |USB       |usb      |
+|USB-RLY02      |2           |USB       |usb      |
+|USB-RLY08B     |2           |USB       |usb      |
+|USB-RLY82      |2           |USB       |usb      |
+|USB-RLY16      |2           |USB       |usb      |
+|USB-RLY16L     |2           |USB       |usb      |
+|USB-OPTO-RLY88 |2           |USB       |usb      |
+|USB-RLY816     |2           |USB       |usb      |
+|USB-RELAY02    |2           |USB       |usb      |
+|USB-RELAY02    |2           |USB       |usb      |
+|USB-RELAY02    |2           |USB       |usb      |
+|USB-RELAY02    |2           |USB       |usb      |
+|USB-RELAY02    |2           |USB       |usb      |
+|USB-RELAY02    |2           |USB       |usb      |
 
 USB-RLY02-SN https://www.robot-electronics.co.uk/products/relay-modules/usb-relay/usb-rly02-sn.html
 
