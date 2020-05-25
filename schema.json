@@ -50,7 +50,7 @@
                             "properties": {
                                 "id": { "title": "Protocol id", "type": "string", "enum": [ "http", "https", "tcp", "usb" ] },
                                 "status": { "title": "Status command", "type": "string" },
-                                "password": { "title": "Password token", "type": "string" },
+                                "authenticationtoken": { "title": "Authentication token", "type": "string" },
                                 "commands" : {
                                     "type": "array",
                                     "items": {

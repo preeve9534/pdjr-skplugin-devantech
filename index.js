@@ -37,19 +37,19 @@ module.exports = function(app) {
     const log = new Log(app.setProviderStatus, app.setProviderError, plugin.id);
 
 	plugin.schema = function() {
-        if (DEBUG & DEBUG_TRACE) console.log("plugin.schema()...");
+        if (DEBUG & DEBUG_TRACE) log.N("plugin.schema()...", false);
         var schema = Schema.createSchema(PLUGIN_SCHEMA_FILE);
         return(schema.getSchema());
     };
 
 	plugin.uiSchema = function() {
-        if (DEBUG & DEBUG_TRACE) console.log("plugin.uischema()...");
+        if (DEBUG & DEBUG_TRACE) log.N("plugin.uischema()...", false);
         var schema = Schema.createSchema(PLUGIN_UISCHEMA_FILE);
         return(schema.getSchema());
     }
 
 	plugin.start = function(options) {
-        if (DEBUG & DEBUG_TRACE) console.log("plugin.start(%s)...", JSON.stringify(options));
+        if (DEBUG & DEBUG_TRACE) log.N("plugin.start(" + JSON.stringify(options) + ")...", false);
 
         // Begin by tidying up and getting rid of broken module definitions...
         options.modules = options.modules.filter(module => validateModuleDefinition(
@@ -72,13 +72,21 @@ module.exports = function(app) {
 
             options.modules.forEach(module => connectModule(
                 module,
-                options.global,
                 {
                     onupdate: (DEBUG & DEBUG_DIALOG)?(msg) => { log.N(msg, false); }:null,
                     onerror: (err) => { log.E(err, false); },
-                    onopen: (module) => { subscribe(module, options.global); },
-                    ondata: (module, buffer) => { processData(module, buffer, options.global); },
-                    onclose: (module) => { unsubscribe(module); }
+                    onopen: (module) => { 
+                        module.unsubscribes = subscribe(module, options.global);
+                        unsubscribes = unsubscribes.concat(module.unsubscribes);
+                     },
+                    ondata: (module, buffer) => {
+                        //processData(module, buffer, options.global);
+                    },
+                    onclose: (module) => {
+                        module.unsubscribes.forEach(f => f());
+                        unsubscribes = unsubscribes.filter(f => (!module.unsubscribes.contains(f)));
+                        module.unsubscribes = [];
+                    }
                 }
             ));
 
@@ -93,7 +101,7 @@ module.exports = function(app) {
     }
 
 	plugin.stop = function() {
-        if (DEBUG & DEBUG_TRACE) console.log("plugin.stop()...");
+        if (DEBUG & DEBUG_TRACE) log.N("plugin.stop()...", false);
 		unsubscribes.forEach(f => f());
 		unsubscribes = [];
 	}
@@ -120,6 +128,7 @@ module.exports = function(app) {
      * @return - connection object or null if parse fails.
      */
     function parseConnectionString(cstring) {
+        if (DEBUG & DEBUG_TRACE) log.N("parseConnection(" + cstring + ")...", false);
         var retval = null;
         var matches, username = undefined, password = undefined, protocol = undefined, device = undefined, port = undefined;
 
@@ -150,28 +159,30 @@ module.exports = function(app) {
      * @param options - plugin global options.
      */
     function subscribe(module, options) {
-        var m = module;
+        if (DEBUG & DEBUG_TRACE) log.N("subscribe(" + module.id + "," + JSON.stringify(options) + ")...", false);
+        var unsubscribes = [];
         module.channels.forEach(channel => {
-            var c = channel;
-            var triggerPath = ((c.trigger)?c.trigger:options.trigger).replace('{m}', m.id).replace('{c}', c.id);
-            var triggerStates = (c.triggerstates)?c.triggerstates:options.triggerstates; 
+            var triggerPath = ((channel.trigger)?channel.trigger:options.trigger).replace('{m}', module.id).replace('{c}', channel.id);
+            var triggerStates = (channel.triggerstates)?channel.triggerstates:options.triggerstates; 
             var triggerStream = getStreamFromPath(triggerPath, triggerStates);
             if (triggerStream) {
-                c.unsubscribe = triggerStream.onValue(v => {
-                    var triggerCommand = getCommand(m, c.index, ((v == 0)?0:1)); 
-                    m.connection.stream.write(triggerCommand);
+                channel.unsubscribe = triggerStream.onValue(v => {
+                    var triggerCommand = getCommand(module, channel.index, ((v == 0)?0:1)); 
+                    module.connection.stream.write(triggerCommand);
                     app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": [
-                        { "path": options.switchpath.replace('{m}', m.id).replace('{c}', c.id) + ".state", "value": ((v == 0)?0:1) }
+                        { "path": options.switchpath.replace('{m}', module.id).replace('{c}', channel.id) + ".state", "value": ((v == 0)?0:1) }
                     ] }] });
                 });
-                unsubscribes.push(c.unsubscribe);
+                unsubscribes.push(channel.unsubscribe);
             } else {
                 log.E("unable to acquire stream for " + triggerPath, false);
             }
         });
+        return(unsubscribes);
     }
 
     function unsubscribe(module) {
+        if (DEBUG & DEBIG_TRACE) log.N("unsubscribe(" + module.id + ")...", false);
         var ufs = module.channels.map(channel => channel.unsubscribe);
         unsubscribes = unsubscribes.filter(f => { if (ufs.contains(f)) { f(); return(false); } else { return(true); } });
     }
@@ -201,7 +212,7 @@ module.exports = function(app) {
      * @return - true if module validates successfully, otherwise false.
      */ 
     function validateModuleDefinition(module, device, options) {
-        if (DEBUG & DEBUG_TRACE) console.log("validateModuleDefinition(%s,%s,%s)...", JSON.stringify(module), JSON.stringify(device), JSON.stringify(options));
+        if (DEBUG & DEBUG_TRACE) log.N("validateModuleDefinition(" + JSON.stringify(module) + "," + JSON.stringify(device) + "," + JSON.stringify(options) + ")...", false);
         const mF = [ "id", "description", "deviceid", "cstring" ]; // Module fields to be trimmed and normalised.
         const mR = [ "id", "deviceid", "cstring" ]; // Module fields that are required.
         var retval = true;
@@ -255,20 +266,15 @@ module.exports = function(app) {
      * module. Pretty much everything that goes on here is asynchronous in
      * character.
      *
-     * The <required> object must be used to pass in a global settings object
-     * which defines trigger, triggerstates and switchpath properties. The
-     * simplest and usual way of doing this will be to pass in the plugin's 
-     * options.global object.
-     *
      * The <options> object should be used to define a number of callbacks:
      *
      * onopen(module, required) will be called when a connection is
-     * successfully opened and might be used to register the now functioning
-     * module with Signal K.
+     * successfully opened and should be used to register the now functioning
+     * module with Signal K by subscribing to trigger deltas.
      *
      * onclose(module) will be called if a connection spontaineously closes
      * and might be used to de-register the now non-functioning module from
-     * Signal K.
+     * Signal K by unsubscribing trigger deltas.
      *
      * onupdate will be called with explanatory messages as connections are
      * progressed.
@@ -276,11 +282,10 @@ module.exports = function(app) {
      * onerror will be called with diagnostic messages if connection fails. 
      *
      * @param module - the module definition to be processed.
-     * @param required - the plugin's options.global object.
      * @param options - various callbacks.
      */
     function connectModule(module, options) {
-        if (DEBUG & DEBUG_TRACE) log.N("connectModule(%s, %s, %s, %s)...", module, JSON.stringify(options), ncallback, ecallback);
+        if (DEBUG & DEBUG_TRACE) log.N("connectModule(" + module.id + "," + JSON.stringify(options) + ")...", false);
         var retval = false;
         switch (module.cobject.protocol) {
             case 'tcp':
@@ -326,7 +331,6 @@ module.exports = function(app) {
                 if (options && options.onerror) options.onerror("module '" + module.id + " has an invalid connection protocol");
                 break;
         }
-        return(retval);
     }
 
     /**
@@ -342,10 +346,10 @@ module.exports = function(app) {
      * @return - the required command string or null if command recovery fails.
      */
     function getCommand(module, channel, state) {
-        if (DEBUG & DEBUG_TRACE) console.log("getCommand(%s,%s,%s)...", module, channel, state);
+        if (DEBUG & DEBUG_TRACE) log.N("getCommand(" + module.id + "," + channel + "," + state + ")...", false);
         var retval = null;
 
-        var deviceprotocol =  module.device.protocols.reduce((a,p) => { return((p.id == module.connection.parameters.protocol)?p:a); }, null);
+        var deviceprotocol =  module.device.protocols.reduce((a,p) => { return((p.id == module.cobject.protocol)?p:a); }, null);
         if (deviceprotocol) {
             if ((deviceprotocol.commands.length == 1) && (deviceprotocol.commands[0].channel == 0)) {
                 retval = deviceprotocol.commands[0][((state)?"on":"off")].replace("{c}", channel);
@@ -353,10 +357,11 @@ module.exports = function(app) {
             } else {
                 retval = deviceprotocol.commands.reduce((a,c) => { return((c.channel == channel)?c[((state)?"on":"off")]:a); }, null);
             }
-            if (module.connection.parameters.password) {
-                retval = retval.replace('{p}', connectionParameters.password);
-                var P = module.device.password.replace('{p}', module.connection.parameters.password);
-                retval = retval.replace('{P}', P);
+            if (deviceprotocol.authenticationtoken && (module.cobject.username || module.cobject.password)) {
+                var A = deviceprotocol.authenticationtoken;
+                if (module.cobject.username) A = A.replace('{u}', module.cobject.username);
+                if (module.cobject.password) A = A.replace('{p}', module.cobject.password);
+                retval = retval.replace('{A}', A);
             }
         }
         return(retval);
@@ -375,7 +380,7 @@ module.exports = function(app) {
      * @param dcallback - optional callback function which will be passed each value as it arrives on any generated stream.
      */ 
     function getStreamFromPath(path, states, dcallback) {
-        if (DEBUG & DEBUG_TRACE) console.log("getStreamFromPath(%s,%s,%s)...", path, states, debug);
+        if (DEBUG & DEBUG_TRACE) log.N("getStreamFromPath(" + path + "," + states + "," + dcallback + ")...", false);
 
         var stream = null;
         if ((path != null) && ((stream = app.streambundle.getSelfStream(path)) !== null)) {
@@ -394,6 +399,7 @@ module.exports = function(app) {
      * @param global -
      */
     function processData(module, buffer, global) {
+        if (DEBUG & DEBUG_TRACE) log.N("processData(" + JSON.stringify(module) + "," + JSON.stringify(buffer) + "," + JSON.stringify(global) + ")...", false);
         switch (module.cobject.protocol) {
             case 'tcp':
                 if (buffer.toString() == "fail") {

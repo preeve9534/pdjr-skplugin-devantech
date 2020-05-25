@@ -130,6 +130,14 @@ in _Global settings_ is set to a non-zero value.
 Optional.
 No default.
 
+_Credentials format_ specifies the format for the credential token {L} in
+terms of any username {u} and password {p} tokens. For example, the Devantech
+TCP protocol can be password protected and passwords are introduced into
+commands by preceeding them with a 'y' character. The credentials format
+is therefore 'y{p}'.
+Optional.
+No default.
+
 _Commands_ is a list of command definitions, which describes the the commands
 required to change the state of the device relays.
 The configuration GUI allows you to create and delete command definitions
