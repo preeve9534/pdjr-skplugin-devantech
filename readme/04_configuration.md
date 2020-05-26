@@ -130,11 +130,11 @@ in _Global settings_ is set to a non-zero value.
 Optional.
 No default.
 
-_Credentials format_ specifies the format for the credential token {L} in
+_Authentication token_ specifies the format of an authentication token {A} in
 terms of any username {u} and password {p} tokens. For example, the Devantech
 TCP protocol can be password protected and passwords are introduced into
-commands by preceeding them with a 'y' character. The credentials format
-is therefore 'y{p}'.
+commands by preceeding them with a 'y' character and a credentials format
+of 'y{p}'.
 Optional.
 No default.
 
@@ -143,48 +143,41 @@ required to change the state of the device relays.
 The configuration GUI allows you to create and delete command definitions
 using the ```[+]``` and ```[-]``` controls.
 
-The _Commands_ array can be configured with a single command definition that
-provides a template for the commands to be used to operate relays on the host
-device.
-In this case, the specified command must have a _Channel index_ property with
-the value zero and the individual command strings will need to include
-wildcards that can be substituted with the index of the particular channel
-being operated.
+Each command definition consists of a _Channel index_ which identifies the
+relay channel to which the definition relates and patterns for the commands
+which turn the relay on and off.
 
-Alternatively, the _Commands_ array can include a collection of command
-definitions, one for each relay channel, which give separate commands for
-operating each of the device's relay channels.
+The _Commands_ array can be configured with a single command definition with
+a _Channel index_ value of zero that provides a pattern for the command to
+be used to operate all relays.
+Alternatively, each channel can be enumerated and the commands for each relay
+channel specified separately.
 
-A command has the following properties.
-
-_Channel index_ specifies the index of the device relay channel to which the
-command relates (relay channels are indexed from 1).
-Specifying a 0 value says that the following _ON command_ and _OFF command_
-should be used to operate all relay channels.
+_Channel index_ the value 0 or the index of the channel command being defined.
 Required.
 No default.
 
-_ON command_ specifies the command that should be issued to switch the relay
-channel or channels ON.
-If _Channel index_ is set to zero, then the command supplied here must include
-the wildcard '{c}' will be replaced during command execution by the index of
-the relay channel which is being operated.
-Required.
-No default.
+_ON command_ the command string used to turn ON the relay or relays selected
+by _Channel index_.
 
-_OFF command_ specifies the command that should be issued to switch the relay
-channel or channels OFF.
-If _Channel index_ is set to zero, then the command supplied here must include
-the wildcard '{c}' will be replaced during command execution by the index of
-the relay channel which is being operated.
-Required.
-No default.
+_OFF command_ the command string used to turn OFF the relay or relays selected
+by _Channel index_.
+
+The strings supplied for the on and off commands are simply JSON formatted
+strings which will be transmitted to the relay device.  Embedded escape
+sequences are interpolated and the following wildcards substituted before
+string transmission.
+
+|Wildcard|Replacement value                                                  |
+|:{c}   :|The ASCII coded index of the channel being processed.              |
+|:{C}   :|The byte encoded index of the channel being processed.             |
+|:{A}   :|The value of the _Authentication token_ (after token replacement). | 
 
 A simple snippet from the configuration file might look like this.
 ```
     "devices": [
         {
-            "id": "USB-RELAY02",
+            "id": "USB-RLY02",
             "size": 2,
             "protocols": [
                 {
@@ -198,13 +191,14 @@ A simple snippet from the configuration file might look like this.
             ]
         },
         {
-            "id": "ETH-RELAY04",
+            "id": "ETH044",
             "size": 4,
             "protocols": [
                 {
                     "id": "tcp",
+                    "authenticationtoken": "y{p}",
                     "commands": [
-                        { "channel": 0, "on": "ON {c}", "off": "OFF {c}" }
+                        { "channel": 0, "on": "{A} {C}\0001\0000\007B" "off": "{A} {C}\0000\0000\007B" }
                     ]
                 }
             }

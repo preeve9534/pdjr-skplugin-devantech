@@ -105,38 +105,57 @@
                 {
                     "id": "ETH002",
                     "size": 2,
-                    "status": "",
-                    "macros": "P(y{p})",
-                    "commands": [
-                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    "protocols": [
+                        {
+                            "id": "tcp",
+                            "status": "",
+                            "authenticationtoken": "y{p}",
+                            "commands": [
+                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                            ]
+                        }
                     ]
                 },
                 {
                     "id": "ETH044",
                     "size": 4,
-                    "status": "",
-                    "macros": "P(y{p})",
-                    "macros": [ { "name": "P", "value": "y{p}" } ],
-                    "commands": [
-                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    "protocols": [
+                        {
+                            "id": "tcp",
+                            "status": "",
+                            "authenticationtoken": "y{p}",
+                            "commands": [
+                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                            ]
+                        }
                     ]
                 },
                 {
                     "id": "ETH008",
                     "size": 8,
-                    "status": "",
-                    "macros": "P(y{p})",
-                    "commands": [
-                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    "protocols": [
+                        {
+                            "id": "tcp",
+                            "status": "",
+                            "authenticationtoken": "y{p}",
+                            "commands": [
+                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                            ]
+                        }
                     ]
                 },
                 {
                     "id": "ETH8020",
                     "size": 20,
-                    "status": "",
-                    "macros": "P(y{p})",
-                    "commands": [
-                        { "channel": 0, "on": "{P} {C}\x01\x00\x7B", "off": "{P} {C}\x00\x00\x7B" }
+                    "protocols": [
+                        {
+                            "id": "tcp",
+                            "status": "",
+                            "authenticationtoken": "y{p}",
+                            "commands": [
+                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                            ]
+                        }
                     ]
                 }
             ]
