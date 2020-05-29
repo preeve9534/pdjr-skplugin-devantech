@@ -69,7 +69,7 @@
             },
             "default": [
                 {
-                    "id": "USB-RLY02-SN USB-RLY02 USB-RLY82 ",
+                    "id": "USB-RLY02-SN USB-RLY02 USB-RLY82",
                     "size": 2,
                     "protocols": [
                         {
@@ -111,7 +111,7 @@
                             "status": "",
                             "authenticationtoken": "y{p}",
                             "commands": [
-                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
                             ]
                         }
                     ]
@@ -125,7 +125,7 @@
                             "status": "",
                             "authenticationtoken": "y{p}",
                             "commands": [
-                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
                             ]
                         }
                     ]
@@ -139,7 +139,7 @@
                             "status": "",
                             "authenticationtoken": "y{p}",
                             "commands": [
-                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
                             ]
                         }
                     ]
@@ -153,7 +153,7 @@
                             "status": "",
                             "authenticationtoken": "y{p}",
                             "commands": [
-                                { "channel": 0, "on": "{A} {C}\x01\x00\x7B", "off": "{A} {C}\x00\x00\x7B" }
+                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
                             ]
                         }
                     ]

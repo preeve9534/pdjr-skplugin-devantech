@@ -78,9 +78,12 @@ module.exports = function(app) {
                     onopen: (module) => { 
                         module.unsubscribes = subscribe(module, options.global);
                         unsubscribes = unsubscribes.concat(module.unsubscribes);
+                        var statuscmd = module.device.protocols.reduce((a,p) => { return((p.id == module.cobject.protocol)?p.status:null) ; }, null);
+                        if (statuscmd) setTimeout(() => { module.connection.stream.write(statuscmd); }, 500);
                      },
                     ondata: (module, buffer) => {
-                        //processData(module, buffer, options.global);
+                        log.N("receiving data");
+                        processData(module, buffer, options.global);
                     },
                     onclose: (module) => {
                         module.unsubscribes.forEach(f => f());
@@ -92,11 +95,10 @@ module.exports = function(app) {
 
             // Report module states
             // options.modules.forEach(module => {
-            //module.port.write(module.statuscommand, err => { if (err) console.log("error writing status request"); });
             //});
 
         } else {
-            log.N("there are no usable module configurations");
+            log.N("there are no usable module definitions");
         }
     }
 
@@ -323,8 +325,6 @@ module.exports = function(app) {
                         if (options && options.onclose) options.onclose(module);
                     });
                     if (options && options.onopen) options.onopen(module);
-                    //var statusCommand = module.device.protocols.reduce((a,p) => { return((p.id == 'usb')?p['status']:a); }, null);
-                    //if (statusCommand) module.connection.stream.write(statusCommand);
                 });
                 break;
             default:

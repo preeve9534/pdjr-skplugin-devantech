@@ -41,5 +41,6 @@
             "description": { "classNames": "col-sm-8" },
             "deviceid": { "classNames": "col-sm-4" },
             "cstring": { "classNames": "col-sm-8", "ui:help": "Options are 'usb:device' or '[password]@tcp:host:port'" }
+        }
     }
 }
