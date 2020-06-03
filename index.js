@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-const Log = require("./lib/log.js");
-const Schema = require("./lib/schema.js");
+const Log = require("./lib/signalk-liblog/Log.js");
+const Schema = require("./lib/signalk-libschema/Schema.js");
 const SerialPort = require('./node_modules/serialport');
 const ByteLength = require('./node_modules/@serialport/parser-byte-length')
 
@@ -82,7 +82,6 @@ module.exports = function(app) {
                         if (statuscmd) setTimeout(() => { module.connection.stream.write(statuscmd); }, 500);
                      },
                     ondata: (module, buffer) => {
-                        log.N("receiving data");
                         processData(module, buffer, options.global);
                     },
                     onclose: (module) => {
