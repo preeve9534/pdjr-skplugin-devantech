@@ -15,17 +15,16 @@ sections of the Signal K documentation may provide helpful orientation.
 
 __signalk-devantech__ implements a reporting and control interface for
 multi-channel relay modules manufactured by the UK company Devantech.
-These plugin supports devices that are operated over USB, WiFi and
-wired ethernet and may support modules from other manufacturers which
-have a compatible interfacing principle.
+The plugin supports devices that are operated over USB, WiFi and
+wired ethernet and may support similar devices from other manufacturers
+which have a compatible interfacing principle.
 
-The plugin accepts relay operating commands over a *control channel*.
-commands received on a control channel which can be either a Signal K
-notification path or a Unix domain socket (IPC).
-Relays are then operated using the Devantech protocol particular to
-the specific relay module type.
-Relay module models and their operating parameters are in the plugin
-configuration file which includes definitions for most of the Devantech
+The plugin accepts relay operating commands over a *control channel*
+which can be either a Signal K notification path or a Unix domain
+socket (IPC).
+Relays are operated using protocols specified in the plugin configuration
+file.
+The supplied configuration file includes definitions for most of the Devantech
 product range.
 
 __signalk-devantech__ was designed to operate alongside
