@@ -1,194 +1,173 @@
 {
-    "type": "object",
-    "properties": {
-        "global": {
-            "title": "Global settings",
-            "type": "object",
-            "required": [ "trigger", "triggerstates", "switchpath", "pollinterval" ],
-            "properties": {
-                "trigger": {
-                    "title": "Default trigger path",
-                    "type": "string",
-                    "default": "notifications.control.{m}.{c}"
-                },
-                "triggerstates": {
-                    "title": "Default notification trigger 'ON' states",
-                    "type": "array",
-                    "default": [ "alert", "alarm", "emergency" ],
-                    "items": {
-                        "type": "string",
-                        "enum": [ "normal", "alert", "alarm", "emergency" ]
-                    },
-                    "uniqueItems": true
-                },
-                "switchpath": {
-                    "title": "Relay module switch path",
-                    "type": "string",
-                    "default": "electrical.switches.{m}.{c}"
-                },
-                "pollinterval": {
-                    "title": "Switch polling frequency in ms",
-                    "type": "number",
-                    "default": 0
-                }
-            }
-        },
-        "devices": {
-            "title": "Device definitions",
+  "type": "object",
+  "properties": {
+    "controlchannel": {
+      "title": "Plugin control channel",
+      "type": "string",
+      "default": "notification:notifications.switchlogic.commands"
+    },
+    "switchpath": {
+      "title": "Switchbank path",
+      "type": "string",
+      "default": "electrical.switches.bank.{m}.{c}"
+    ),
+    "modules" : {
+      "title": "Modules",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": [ "id", "deviceid", "cstring", "channels" ],
+        "properties": {
+          "id": { "title": "Signal K module id", "type": "string" },
+          "description": { "title": "Module description", "type": "string" },
+          "deviceid": { "title": "Device id", "type": "string" },
+          "devicecstring": { "title": "Connection string", "type": "string" },
+          "channels": {
             "type": "array",
             "items": {
-                "type": "object",
-                "required" : [ "id", "size", "protocols" ],
-                "properties": {
-                    "id": { "title": "Device identifier", "type": "string" },
-                    "size": { "title": "Number of relay channels", "type": "number" },
-                    "protocols": {
-                        "title": "Protocols supported by this module",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": { "title": "Protocol id", "type": "string", "enum": [ "http", "https", "tcp", "usb" ] },
-                                "status": { "title": "Status command", "type": "string" },
-                                "authenticationtoken": { "title": "Authentication token", "type": "string" },
-                                "commands" : {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "channel": { "title": "Relay channel index", "type": "number" },
-                                            "on": { "title": "ON command", "type": "string" },
-                                            "off": { "title": "OFF command", "type": "string" }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } 
+              "type": "object",
+              "properties": {
+                "index": {
+                  "title": "Channel index",
+                  "type": "number"
+                },
+                "description": {
+                  "title": "Channel description",
+                  "type": "string"
                 }
-            },
-            "default": [
-                {
-                    "id": "USB-RLY02-SN USB-RLY02 USB-RLY82",
-                    "size": 2,
-                    "protocols": [
-                        {
-                            "id": "usb",
-                            "status": "[",
-                            "commands": [
-                                { "channel": 1, "on": "e", "off": "o" },
-                                { "channel": 2, "on": "f", "off": "p" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "USB-RLY08B USB-RLY16 USB-RLY16L USB-OPTO-RLY88 USB-OPTO-RLY816",
-                    "size": 8,
-                    "protocols": [
-                        {
-                            "id": "usb",
-                            "status": "[",
-                            "commands": [
-                                { "channel": 1, "on": "e", "off": "o" },
-                                { "channel": 2, "on": "f", "off": "p" },
-                                { "channel": 3, "on": "g", "off": "q" },
-                                { "channel": 4, "on": "h", "off": "r" },
-                                { "channel": 5, "on": "i", "off": "s" },
-                                { "channel": 6, "on": "j", "off": "t" },
-                                { "channel": 7, "on": "k", "off": "u" },
-                                { "channel": 8, "on": "l", "off": "v" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "ETH002",
-                    "size": 2,
-                    "protocols": [
-                        {
-                            "id": "tcp",
-                            "status": "",
-                            "authenticationtoken": "y{p}",
-                            "commands": [
-                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "ETH044",
-                    "size": 4,
-                    "protocols": [
-                        {
-                            "id": "tcp",
-                            "status": "",
-                            "authenticationtoken": "y{p}",
-                            "commands": [
-                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "ETH008",
-                    "size": 8,
-                    "protocols": [
-                        {
-                            "id": "tcp",
-                            "status": "",
-                            "authenticationtoken": "y{p}",
-                            "commands": [
-                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "id": "ETH8020",
-                    "size": 20,
-                    "protocols": [
-                        {
-                            "id": "tcp",
-                            "status": "",
-                            "authenticationtoken": "y{p}",
-                            "commands": [
-                                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        "modules" : {
-            "title": "Module definitions",
-            "type": "array",
-            "default": [],
-            "items": {
-                "type": "object",
-                "required": [ "id", "deviceid", "cstring", "channels" ],
-                "properties": {
-                    "id": { "title": "Signalk module id", "type": "string" },
-                    "description": { "title": "Module description", "type": "string" },
-                    "deviceid": { "title": "Device id", "type": "string" },
-                    "cstring": { "title": "Connection string", "type": "string" },
-                    "channels": {
-                        "type": "array",
-                        "default": [],
-                        "items": {
-                            "type": "object",
-                            "required": [ "index" ],
-                            "properties": {
-                                "index": { "title": "Device relay index", "type": "number" },
-                                "id": { "title": "Signal K channel id", "type": "string" },
-                                "description": { "title": "Channel description", "type": "string" },
-                                "trigger": { "title": "Trigger path", "type": "string" },
-                                "triggerstates": { "title": "Notification trigger ON states", "type": "array", "items": { "type": "string" } }
-                            }
-                        }
-                    }
-                }
+              }
             }
+          }
         }
+      }
+    },
+    "devices": {
+      "title": "Device definitions",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required" : [ "id", "size", "protocols" ],
+        "properties": {
+          "id": { "title": "Device identifier", "type": "string" },
+          "size": { "title": "Number of relay channels", "type": "number" },
+          "protocols": {
+            "title": "Protocols supported by this module",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "title": "Protocol id", "type": "string", "enum": [ "http", "https", "tcp", "usb" ] },
+                "status": { "title": "Status command", "type": "string" },
+                "authenticationtoken": { "title": "Authentication token", "type": "string" },
+                "commands" : {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "channel": { "title": "Relay channel index", "type": "number" },
+                      "on": { "title": "ON command", "type": "string" },
+                      "off": { "title": "OFF command", "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          } 
+        }
+      },
+      "default": [
+        {
+          "id": "USB-RLY02-SN USB-RLY02 USB-RLY82",
+          "size": 2,
+          "protocols": [
+            {
+              "id": "usb",
+              "status": "[",
+              "commands": [
+                { "channel": 1, "on": "e", "off": "o" },
+                { "channel": 2, "on": "f", "off": "p" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "USB-RLY08B USB-RLY16 USB-RLY16L USB-OPTO-RLY88 USB-OPTO-RLY816",
+          "size": 8,
+          "protocols": [
+            {
+              "id": "usb",
+              "status": "[",
+              "commands": [
+                { "channel": 1, "on": "e", "off": "o" },
+                { "channel": 2, "on": "f", "off": "p" },
+                { "channel": 3, "on": "g", "off": "q" },
+                { "channel": 4, "on": "h", "off": "r" },
+                { "channel": 5, "on": "i", "off": "s" },
+                { "channel": 6, "on": "j", "off": "t" },
+                { "channel": 7, "on": "k", "off": "u" },
+                { "channel": 8, "on": "l", "off": "v" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ETH002",
+          "size": 2,
+          "protocols": [
+            {
+              "id": "tcp",
+              "status": "",
+              "authenticationtoken": "y{p}",
+              "commands": [
+                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ETH044",
+          "size": 4,
+          "protocols": [
+            {
+              "id": "tcp",
+              "status": "",
+              "authenticationtoken": "y{p}",
+              "commands": [
+                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ETH008",
+          "size": 8,
+          "protocols": [
+            {
+              "id": "tcp",
+              "status": "",
+              "authenticationtoken": "y{p}",
+              "commands": [
+                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ETH8020",
+          "size": 20,
+          "protocols": [
+            {
+              "id": "tcp",
+              "status": "",
+              "authenticationtoken": "y{p}",
+              "commands": [
+                { "channel": 0, "on": "{A} {C}\u0001\u0000\u007B", "off": "{A} {C}\u0000\u0000\u007B" }
+              ]
+            }
+          ]
+        }
+      ]
     }
+  }
 }
