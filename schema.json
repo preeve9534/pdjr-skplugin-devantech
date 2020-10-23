@@ -32,6 +32,10 @@
                   "title": "Channel index",
                   "type": "number"
                 },
+                "address": {
+                  "title": "Address of associated relay on physical device",
+                  "type": "number"
+                },
                 "description": {
                   "title": "Channel description",
                   "type": "string"
@@ -58,16 +62,17 @@
               "type": "object",
               "properties": {
                 "id": { "title": "Protocol id", "type": "string", "enum": [ "http", "https", "tcp", "usb" ] },
-                "status": { "title": "Status command", "type": "string" },
+                "statuscommand": { "title": "Status command", "type": "string" },
                 "authenticationtoken": { "title": "Authentication token", "type": "string" },
-                "commands" : {
+                "channels" : {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "channel": { "title": "Relay channel index", "type": "number" },
-                      "on": { "title": "ON command", "type": "string" },
-                      "off": { "title": "OFF command", "type": "string" }
+                      "address": { "title": "Relay channel address/index", "type": "number" },
+                      "oncommand": { "title": "ON command", "type": "string" },
+                      "offcommand": { "title": "OFF command", "type": "string" },
+                      "statusmask": { "title": "Mask to reveal channel state", "type": "number" }
                     }
                   }
                 }

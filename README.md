@@ -14,61 +14,78 @@ and
 sections of the Signal K documentation may provide helpful orientation.
 
 __signalk-devantech__ implements a reporting and control interface for
-multi-channel relay modules manufactured by the UK company Devantech.
-The plugin supports devices that are operated over USB, WiFi and
-wired ethernet and may support similar devices from other manufacturers
-which have a compatible interfacing principle.
+multi-channel relay devices manufactured by the UK company Devantech.
+The supplied configuration file includes definitions for most of the
+Devantech product range including devices that are operated over USB,
+WiFi and wired ethernet.
 
 The plugin accepts relay operating commands over a *control channel*
 which can be either a Signal K notification path or a Unix domain
 socket (IPC).
-Relays are operated using protocols specified in the plugin configuration
-file.
-The supplied configuration file includes definitions for most of the Devantech
-product range.
 
-__signalk-devantech__ was designed to operate alongside
-[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank)
-which implements a comprehensive control logic that can issue commands
-over this plugin's notification channel.
+__signalk-devantech__ was designed to operate alongside the
+[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank#readme)
+plugin which implements a compatible and comprehensive control logic.
 
 Devantech Ltd kindly supported the development of this plugin by making
-some of its relay module products available to the author for
-evaluation and testing.
+some of its relay devices available to the author for evaluation and
+testing.
 
-## Operating principle
+## Overview
 
-__signalk-devantech__ supports relay modules in the Devantech USB, ESP,
-ETH and dS model ranges and ships with an expandable library of device
-definitions that covers modules that connect by USB, WiFi and wired
-ethernet. 
+This discussion uses the term *device* to refer to a supported product
+available from Devantech and *module* to refer to a specific *device*
+that has been installed by the user for operation by
+__signalk-devantech__.
 
-Each device that is to be operated by the plugin must be defined in the
-plugin configuration file.
+__signalk-devantech__ relies on a configuration file which:
 
-### Relay state information
+1. Identifies the control channel on which the plugin should listen
+   for relay operating *commands*.
 
-Each relay module is represented by a collection of Signal K paths with
-the general pattern 'electrical.switches.bank.*m*.*c*',
-where *m* is an arbitrary module identifier and *c* is a natural number
-indexing a channel within a module.
+2. Defines the devices the plugin is able to operate through a
+   collection of *device definitions* which enumerate the physical
+   characteristics of a device, its operating protocol and the commands
+   necessary to operate it.
+
+3. Specifies the modules which the user wishes the plugin to operate
+   through a collection of *module definitions* which identify the
+   module device type, map a Signal K channel onto each device relay
+   and name each channel for documentary and reporting purposes.
+
+The default configuration file includes an expandable set of
+device definitions for products in Devantech's USB, ESP, ETH and dS
+model ranges.
+
+For each configured module, __signalk-devantech__ performs three
+distinct tasks: firstly, it builds a Signal K path for each module
+channel and decorates the path with some documentary meta data;
+secondly it maintains state information for each path which reflects
+the current relay state; and finally it accepts commands from the
+plugin control channel and uses these to operate relays on attached
+devices.
+
+### Signal K data paths and meta information
+
+A relay device is represented in Signal K by a collection of paths
+with the general pattern 'electrical.switches.bank.*m*.*c*', where *m*
+is an arbitrary module identifier and *c* is a natural number indexing
+a channel within a module.
 This structure echoes the Signal K representation of NMEA switch banks,
 but here we'll call it a "relay bank" to avoid confusion.
 
-The relay bank data structure will be built dynamically as relay channel
-states are reported to the plugin, but since Devantech products
-generally do not report their state autonompusly it usually preferable
-to build relay bank structures in advance and allow the plugin to then
-maintain the bank's channel state information as data becomes available
-from the relay module (in the worst case, such information will become
-available when a relay channel is operated).
-Advance building also allows channels within a relay bank to bes
-decorated with useful meta information.
-An easy way of accomplishing an advance build of a a relay bank is to
-use the switchbank specification facility of
-[signalk-switchbank]().
+When __signalk-devantech__ first starts it creates appropriate Signal K
+paths from module definitions in its configuration file and adds a meta
+meta value to each path describing the relay bank channel.
 
-### Relay operation
+### Relay state information
+
+The state value of each Signal K path is set when the module starts and
+only changed after each relay update operation.
+State values n Signal K are only ever set from device status reports
+and hence should always reflect the actual physical state of each relay.
+
+### Command processing
  
 A relay channel is operated by sending __signalk-devantech__ a string
 representation of a JSON *control-message* of the form:
@@ -78,21 +95,17 @@ representation of a JSON *control-message* of the form:
 where *m* and *c* have the meaning discussed above and *s* is the value
 0 or 1 (meaning OFF or ON respectively).
 
-The simplest way of delivering a *control-message* is to pass it Din a
-notification
+The simplest way of delivering a *control-message* is to pass it in a
+notification in which case the message should be the value of the
+notification's description property.
+
 When the plugin receives a *control-message* it attempts to convert it
-into a JSON object using the JSON.parse() function, so a reliable way
-of generating a message is by applying the JSON.stringify() function to
-a suitable JSON object.
+into a JSON object using the JSON.parse() function.
 
 When a *control-message* is received, __signalk-devantech__ validates
 the request against its configuration and if all is good it immediately
 issues an appropriate operating command to the module selected by
 *module_id*.
-
-__signalk-devantech__ defaults to accepting control messages as
-the content of the description property value of notifications arriving
-on the path "notifications.devantech".
 
 ## System requirements
 

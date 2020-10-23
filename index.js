@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-const DebugLog = require("./lib/signalk-liblog/DebugLog.js");
 const Log = require("./lib/signalk-liblog/Log.js");
+const DebugLog = require("./lib/signalk-liblog/DebugLog.js");
 const Schema = require("./lib/signalk-libschema/Schema.js");
 const SerialPort = require('./node_modules/serialport');
 const ByteLength = require('./node_modules/@serialport/parser-byte-length')
@@ -95,6 +95,7 @@ module.exports = function(app) {
           },
           onopen: (module) => { 
             debuglog.N("comms", "module %s: port %s open", module.id, module.cobject.device); 
+            module.connection.stream.write(module.statuscommand);
           },
           ondata: (module, buffer) => {
             debuglog.N("comms", "module %s: %s data received", module.id, module.cobject.protocol);
@@ -116,32 +117,43 @@ module.exports = function(app) {
             var stream = app.streambundle.getSelfStream(controlchannel[2]);
             if (stream) {
               log.N("listening on control channel %s", options.controlchannel);
-              unsubscribes.push(stream.skipDuplicates().onValue(v => {
-                console.log("MESSAGE RECD");
-                var command = (v.description)?JSON.parse(v.description):{};
-                var moduleid = (command.moduleid !== undefined)?command.moduleid:null;
-                var channelid = (command.channelid !== undefined)?parseInt(command.channelid):null;
-                var state = (command.state !== undefined)?parseInt(command.state):null;
-                if ((moduleid !== null) && (channelid !== null) && (state !== null)) {
-                  var module = options.modules.reduce((a,m) => ((m.id == moduleid)?m:a), null);
-                  if (module !== null) {
-                    debuglog.N("commands", "received command %s", JSON.stringify(command));
-                    var command = getCommand(module, channelid, state);
-                    if (command) {
-                      module.connection.stream.write(command);
-                      debuglog.N("commands", "transmitted operating command (%s) for module %s channel %d", command, module.id, channelid);
-                    } else {
-                      log.E("cannot recover operating command for module %s channel %d", module.id, channelid);
+              unsubscribes.push(stream.skipDuplicates().onValue(notification => {
+                var command = JSON.parse(notification.description);
+                console.log("KKKKKKKKKKKKKKKKKK %o", command);
+                if (command) {
+                  if (command.moduleid !== undefined) {
+                    var module = options.modules.reduce((a,m) => ((m.id == command.moduleid)?m:a), null);
+                    if (module !== null) {
+                      if (command.channelid !== undefined) {
+                        if (command.state !== undefined) {
+                          debuglog.N("commands", "received command %s", JSON.stringify(command));
+                          var relaycommand = getCommand(module, command.channelid, command.state);
+                          if (relaycommand) {
+                            module.connection.stream.write(relaycommand);
+                            debuglog.N("commands", "transmitted operating command (%s) for module %s, channel %s", relaycommand, command.moduleid, command.channelid);
+                            module.connection.stream.write(module.statuscommand);
+                          } else {
+                            log.E("cannot recover operating command for module %s, channel %s", module.id, command.channelid);
+                          }
+                        } else {
+                          log.E("ignoring command: state property is undefined");
+                        }
+                      } else {
+                        log.E("ignoring command: channelid property is undefined");
+                      }
                     }
+                  } else {
+                    log.E("ignoring command: moduleid property is undefined");
                   }
+                } else {
+                  log.E("command could not be parsed");
                 }
               }));
             } else {
               log.E("unable to attach to control channel (%s)", options.controlchannel);
             }
             break;
-          case "fifo":
-          case "dbus":
+          case "ipc":
           default:
             log.E("unimplemented control channel %s", options.controlchannel);
             break;
@@ -161,30 +173,51 @@ module.exports = function(app) {
 
   /********************************************************************
    * Fettle up a module definition by normalising property values,
-   * adding defaults for missing, optional, properties and attempting
-   * to parse encoded properties into something useful.
+   * adding defaults for missing, optional, properties and copying over
+   * properties from the specified device definition.
    *
-   * As a side effect, the function will update the passed <module>,
-   * normalising property values and applying internal defaults, so
-   * that on successful validation the module definition is in good
-   * shape for subsequent processing. This involves:
-   *
-   * 1. Adding <device> as module.device.
-   * 2. Parsing module.cstring as module.cobject.
-   *
-   * @param module - the module definition to be processed.
-   * @param device - the device definition against which the module
-   * will be validated
-   * @return - true if module validates successfully, otherwise false.
+   * Update <module> with:
+   * - statuscommand property
+   * - authenticationtoken property
+   * Update each channel in <module> with:
+   * - oncommand property
+   * - offcommand property
+   * - statusmask prooperty
    */ 
 
   function validateModule(module, options) {
-    if (!module.deviceid) throw("module definition must include a device id");
-    module.device = options.devices.reduce((a,d) => { return((d.id.split(' ').includes(module.deviceid))?d:a); }, null);
-    if (module.device == null) throw("module device id is invalid (" + module.deviceid + ")");
-    module.cobject = parseConnectionString(module.devicecstring);
-    if (module.cobject == null) throw("module connection string is invalid (" + module.devicecstring + ")");
-    if (!module.device.protocols.map(p => p.id).includes(module.cobject.protocol)) throw("unsupported protocol '" + module.cobject.protocol + "'");
+    console.log(JSON.stringify(module));
+    var device, protocol, deviceChannel;
+    if (module.deviceid) {
+      if (device = options.devices.reduce((a,d) => ((d.id.split(' ').includes(module.deviceid))?d:a), null)) {
+        console.log(JSON.stringify(device));
+        if (module.cobject = parseConnectionString(module.devicecstring)) {
+          console.log(JSON.stringify(module));
+          if (protocol = device.protocols.reduce((a,p) => ((module.cobject.protocol == p.id)?p:a), null)) {
+            console.log(JSON.stringify(protocol));
+            module.statuscommand = protocol.statuscommand;
+            module.authenticationtoken = protocol.authenticationtoken;
+            module.channels.forEach(channel => {
+              if (deviceChannel = protocol.channels.reduce((a,dc) => (((channel.address?channel.address:channel.index) == dc.address)?dc:a), null)) {
+                channel.oncommand = deviceChannel.oncommand;
+                channel.offcommand = deviceChannel.offcommand;
+                channel.statusmask = (deviceChannel.statusmask !== undefined)?deviceChannel.statusmask:(1 << (deviceChannel.address - 1));
+              } else {
+                throw("invalid channel definition (" + channel.index + ")");
+              }        
+            });
+          } else {
+            throw("protocol specified in connection string is not supported by specified device (" + module.cobject.protocol + ")");
+          }
+        } else {
+          throw("module connection string could not be parsed (" + module.devicecstring + ")");
+        }
+      } else {
+        throw("module device id does not specify a defined device (" + module.deviceid + ")");
+      }
+    } else {
+      throw("module definition must include a device id");
+    }
     return(module);
   
     function parseConnectionString(cstring) {
@@ -309,20 +342,15 @@ module.exports = function(app) {
 
   function getCommand(module, channelid, state) {
     var retval = null;
-
-    var deviceprotocol =  module.device.protocols.reduce((a,p) => { return((p.id == module.cobject.protocol)?p:a); }, null);
-    if (deviceprotocol) {
-      if ((deviceprotocol.commands.length == 1) && (deviceprotocol.commands[0].channel == 0)) {
-        retval = deviceprotocol.commands[0][((state)?"on":"off")];
-      } else {
-        deviceprotocol.commands.forEach(c => { if (c.channel == channelid) retval = c[((state)?"on":"off")]; });
-      }
+    var channel = module.channels.reduce((a,c) => ((c.index == channelid)?c:a), null);
+    if (channel) {
+      retval = (state)?channel.oncommand:channel.offcommand;
       if (retval) {
-        retval = retval.replace('{A}', deviceprotocol.authenticationtoken);
-        retval = retval.replace("{c}", channelid);
-        retval = retval.replace('{C}', String.fromCharCode(parseInt(channelid, 10)));
-        retval = retval.replace("{p}", channelid);
-        retval = retval.replace("{u}", channelid);
+        retval = retval.replace('{A}', module.authenticationtoken);
+        retval = retval.replace("{c}", channel.index);
+        retval = retval.replace('{C}', String.fromCharCode(parseInt(channel.index, 10)));
+        retval = retval.replace("{p}", channel.index);
+        retval = retval.replace("{u}", channel.index);
         retval = retval.replace(/\\(\d\d\d)/gi, (match) => String.fromCharCode(parseInt(match, 8)));
         retval = retval.replace(/\\0x(\d\d)/gi, (match) => String.fromCharCode(parseInt(match, 16)));
       }
@@ -330,39 +358,28 @@ module.exports = function(app) {
     return(retval);
   }
 
-    /**
-     * processData
-     *
-     * @param module -
-     * @param buffer -
-     * @param global -
-     */
+  /********************************************************************
+   * Process a status message received from relay <module>. The message
+   * is passed in <buffer> and will be either a status byte (for eight
+   * channel devices) or a 16-bit word (for 16-channel devices). The
+   * status value is tested against each channel's status mask and
+   * hence used to update each channel's Signal K path state value.
+   */
+
   function processData(module, buffer, switchpath) {
+    console.log("CONNECT MODULE");
     if (switchpath) {
-      var protocol = module.device.protocols.reduce((a,p) => ((p.id == module.cobject.protocol)?p:a), null);
-      if (protocol) {
-        switch (protocol.id) {
-          case 'tcp':
-            if (buffer.toString() == "fail") {
-              log.E("TCP command failure on module " + module.id);
-            } else {
-            }
-            break;
-          case 'usb':
-            var state = (buffer)?buffer.readUInt8(0):null;
-            var deltaValues = [];
-            protocol.commands.forEach(cmd => {
-              deltaValues.push({
-                "path": switchpath.replace('{m}', module.id).replace('{c}', cmd.channel) + ".state",
-                "value": (state & 0x01)
-              });
-              state = (state >> 1);
-            });
-            app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": deltaValues }] });
-            break;
-          default:
-            break;
-        }
+      var moduleState = (buffer)?buffer.readUInt8(0):null;
+      if (moduleState !== null) {
+        var deltaValues = [];
+        module.channels.forEach(channel => {
+          var channelState = (moduleState & channel.statusmask)?1:0;
+          deltaValues.push({
+            "path": switchpath.replace('{m}', module.id).replace('{c}', channel.index) + ".state",
+            "value": channelState
+          });
+        });
+        app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": deltaValues }] });
       }
     }
   }
