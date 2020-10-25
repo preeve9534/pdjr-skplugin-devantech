@@ -67,22 +67,22 @@ devices.
 
 ### Signal K data paths and meta information
 
-A relay device is represented in Signal K by a collection of paths
-with the general pattern 'electrical.switches.bank.*m*.*c*', where *m*
-is an arbitrary module identifier and *c* is a natural number indexing
-a channel within a module.
+By default, a relay device is represented in Signal K by a collection
+of paths with the general pattern 'electrical.switches.bank.*m*.*c*',
+where *m* is an arbitrary module identifier and *c* is a natural
+number indexing a channel within a module.
 This structure echoes the Signal K representation of NMEA switch banks,
 but here we'll call it a "relay bank" to avoid confusion.
 
 When __signalk-devantech__ first starts it creates appropriate Signal K
-paths from module definitions in its configuration file and adds a meta
-meta value to each path describing the relay bank channel.
+paths from module definitions in its configuration file and adds meta
+property to each path describing the relay bank channel.
 
 ### Relay state information
 
 The state value of each Signal K path is set when the module starts and
-only changed after each relay update operation.
-State values n Signal K are only ever set from device status reports
+after each relay update operation.
+State values in Signal K are only ever set from device status reports
 and hence should always reflect the actual physical state of each relay.
 
 ### Command processing
@@ -99,13 +99,11 @@ The simplest way of delivering a *control-message* is to pass it in a
 notification in which case the message should be the value of the
 notification's description property.
 
-When the plugin receives a *control-message* it attempts to convert it
-into a JSON object using the JSON.parse() function.
-
-When a *control-message* is received, __signalk-devantech__ validates
-the request against its configuration and if all is good it immediately
-issues an appropriate operating command to the module selected by
-*module_id*.
+When the plugin receives a control-message it attempts to convert it
+into a JSON object using the JSON.parse() function and then validates
+the request against its configuration.
+If all is good it immediately issues an appropriate operating command
+to the module selected by *m*.
 
 ## System requirements
 
@@ -149,7 +147,7 @@ The plugin configuration file has the following general structure.
 
 If you are using a relay module from Devantech, then most likely the
 only configuration required will be to define the modules connected to
-your system and you can skip to the Module definitions section.
+your system and you can skip to the *Module definitions* section.
 
 ### Global properties
 
