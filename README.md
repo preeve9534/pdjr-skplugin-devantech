@@ -122,37 +122,20 @@ and installed using
 
 ## Configuration
 
-__signalk-devantech__ is configured by the JSON configuration file
-```devantech.json``` located in the host server's ```plugin-config-files```
-directory.
-The configuration file can, of course, be edited directly using a text editor
-and, given the clunkiness of the Signal K configuration interface some users
-may prefer this approach.
+__signalk-devantech__ can be configured from within the Signal K
+console by navigating to _Server->Plugin config_ and selecting the
+_Devantech interface_ tab.
+If you prefer, the configuration file ```devantech.json``` can be
+edited directly using a text editor.
 
-Even so, the following discussion focusses on configuration through the
-Signal K Node server plugin panel which can be accessed by navigating to
-_Server->Plugin config_ and selecting the _Devantech relay module plugin_ tab.
-For completeness, the discussion includes some code examples which illustrate
-the configuration file components underpinning the GUI.
-
-### Getting started
-
-If you are using a compatible relay module from Devantech, then most likely
-the only configuration required will be to define the modules connected to
-your system before enabling the plugin by setting the "Plugin enabled?"
-configuration property to true.
-
-The plugin configuration is divided into three parts (_Global settings_,
-_Device definitions_ and _Connected modules_) each represented in the
-GUI by an expandable tab.
+The plugin configuration file has the following general structure.
 
 ```
 {
   "enabled": false,
   "enableLogging": false,
   "properties": {
-    "controltype": "notification",
-    "controltoken": "notifications.devantech",
+    "controlchannel": "notification:notifications.switchlogic.command",
     "switchpath": "electrical.switches.bank.{m}.{c}",
     "modules": [
       ** MODULE DEFINITIONS **
@@ -164,289 +147,231 @@ GUI by an expandable tab.
 }
 ```
 
-### Global settings
+If you are using a relay module from Devantech, then most likely the
+only configuration required will be to define the modules connected to
+your system and you can skip to the Module definitions section.
 
-The properties under this tab influence the overall behaviour of the plugin.
+### Global properties
 
-_Default relay trigger path_ specifies which Signal K data keys should normallys
-be used by the plugin as relay triggers.
-The value supplied here is a default and can be overriden on a per-channel
-basis in the _Connected modules_ section.
-The supplied value must be relative to the server's 'vessels.self.' path
-and should include the tokens '{m}' and '{c}' as placeholders which will be
-substituted by module id and channel id values for each connected module.
-Required.
-Defaults on installation to 'notifications.control.{m}.{c}'.
+The __controlchannel__ property value introduces a configuration string
+which sets up the channel on which the plugin will listen for relay
+operating commands.
+The configuration string must consist of two, colon-delimited, fields
+*channel-type* followed by *channel-id*" with the following value
+constraints.
 
-_Default notification trigger ON states_ specifies the notification states
-that will by default indicate a relay ON condition when a notification
-appears on a trigger notification path.
-The value supplied here is a default and can be overriden on a per-channel
-basis in the _Connected modules_ section.
-Required.
-Defaults on installation to [ 'alert', 'alarm', 'emergency' ].
+| *channel-type*   | *channel-id*                                               |
+|:-----------------|:-----------------------------------------------------------|
+| __notification__ | A path in the Signal K "notifications...." tree.           |
+| __ipc__          | The pathname of a Unix domain socket.                      |
 
-_Relay module switch path_ specifies the path where relay module channel state
-and meta keys will be created and updated.
-The supplied value must be relative to the server's 'vessels.self.' path
-and should include the tokens '{m}' and '{c}' as placeholders which will be
-substituted by module id and channel id values for each connected module.
-The default conforms to normal Signal K conventions.
-Required.
-Defaults on installation to 'electrical.switches.{m}.{c}'.
+The property value defaults to "notification:notifications.switchlogic.command".
 
-_Switch polling interval in ms_ specifies the interval in milliseconds at
-which the plugin should interrogate the state of attached relay modules.
-Only devices in _Device definitions_ which also define a _Module statuss
-request command property_ will actually be polled at this interval.
-If this value is omitted or set to zero then all polling of connected modules
-is disabled.
-Polling should only be enabled cautiously and conservatively because of its
-potential impact on system performance.
-Optional.
-Defaults zero.
+The __switchpath__ property value specifies a pattern for the Signal K
+paths that will be used by the plugin to represent its configured relay
+modules.
+The default value of "electrical.switches.bank.{m}.{c}" can probably be
+left untouched, but if yo need to change it, then any path you supply
+must include the tokens '{m}' and '{c}' as placeholders which the
+plugin will interpolate with module id and channel id values for each
+connected module.
 
-The default configuration file global snippet looks like this:
-```
-    "global": {
-        "trigger": "notifications.control.{m}.{c}",
-        "triggerstates": [ "alert", "alarm", "emergency" ],
-        "switchpath": "electrical.switches.{m}.{c}",
-        "pollinterval": 0
-    }
-```
+### Module definitions
 
-### Device definitions
-
-The properties under this tab define the interfacing characteristics of all
-supported relay devices: a device must be defined here before it can be
-configured for use by the plugin.
-The plugin installation includes device definitions for all of the supported
-Devantech relay modules.
-
-The configuration GUI allows you to create and delete device definitions using
-the ```[+]``` and ```[-]``` controls.
-
-Each device has the following properties.
-
-_Device id_ gives a unique identifier for the device being defined (the pre-
-installed definitions use the relay module manufacturer's model number).
-Required.
-No default.
-
-_Number of supported relay channels_ specifies the number of relay channels
-supported by the device.
-Required.
-No default.
-
-_Protocols_ is a list of protocol definitions, each of which defines a
-communication protocol supported by the device.
-The configuration GUI allows you to create and delete protocol definitions
-using the ```[+]``` and ```[-]``` controls.
-
-Each protocol has the following properties.
-
-_Protocol id_ specifies the protocol type being defined. 
-The plugin understands 'usb', 'tcp', 'http' and 'https' protocol types.
-Required.
-No default.
-
-_Module status request command_ specifies the command that should be sent to
-the parent device over this protocol to elicit a module status report.
-If supplied, this command will only be used if the _Polling interval_ property
-in _Global settings_ is set to a non-zero value.
-Optional.
-No default.
-
-_Authentication token_ specifies the format of an authentication token {A} in
-terms of any username {u} and password {p} tokens. For example, the Devantech
-TCP protocol can be password protected and passwords are introduced into
-commands by preceeding them with a 'y' character and a credentials format
-of 'y{p}'.
-Optional.
-No default.
-
-_Commands_ is a list of command definitions, which describes the the commands
-required to change the state of the device relays.
-The configuration GUI allows you to create and delete command definitions
-using the ```[+]``` and ```[-]``` controls.
-
-Each command definition consists of a _Channel index_ which identifies the
-relay channel to which the definition relates and patterns for the commands
-which turn the relay on and off.
-
-The _Commands_ array can be configured with a single command definition with
-a _Channel index_ value of zero that provides a pattern for the command to
-be used to operate all relays.
-Alternatively, each channel can be enumerated and the commands for each relay
-channel specified separately.
-
-_Channel index_ the value 0 or the index of the channel command being defined.
-Required.
-No default.
-
-_ON command_ the command string used to turn ON the relay or relays selected
-by _Channel index_.
-
-_OFF command_ the command string used to turn OFF the relay or relays selected
-by _Channel index_.
-
-The strings supplied for the on and off commands are simply JSON formatted
-strings which will be transmitted to the relay device.  Embedded escape
-sequences are interpolated and the following wildcards substituted before
-string transmission.
-
-|Wildcard|Replacement value                                                  |
-|:{c}   :|The ASCII coded index of the channel being processed.              |
-|:{C}   :|The byte encoded index of the channel being processed.             |
-|:{A}   :|The value of the _Authentication token_ (after token replacement). | 
-
-A simple snippet from the configuration file might look like this.
-```
-    "devices": [
-        {
-            "id": "USB-RLY02",
-            "size": 2,
-            "protocols": [
-                {
-                    "id": "usb",
-                    "status": "[",
-                    "commands": [
-                        { "channel": 1, "on": "e", "off": "o" },
-                        { "channel": 2, "on": "f", "off": "p" }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "ETH044",
-            "size": 4,
-            "protocols": [
-                {
-                    "id": "tcp",
-                    "authenticationtoken": "y{p}",
-                    "commands": [
-                        { "channel": 0, "on": "{A} {C}\0001\0000\007B" "off": "{A} {C}\0000\0000\007B" }
-                    ]
-                }
-            }
-    ]
-```
-
-### Modules definitions
-
-The iproperties under this tab define the relay modules which are actually
-part of your system and will be operated by the __signalk-devantech__ plugin.
-
-The configuration GUI allows you to create and delete module definitions using
-the ```[+]``` and ```[-]``` controls.
-
-Each module has the following properties.
-
-_Signal K module id_ specifies a unique identifier for the module in the Signal
-K domain.
-Required.
-No default.
-
-_Device id_ specifies the device which implements this module.
-The supplied value must be the _id_ of a device defined in the _Device
-definitions_ section.
-Required.
-No default.
-
-_Connection string_ specifies a connection string of the form
-'*protocol*__:__*address*__:__[*port*]'
-where:
-
-_protocol_ must be one of 'usb', 'tcp', 'http' or 'https', dependent upon how
-the relay module should communicate with the host server.
-
-_address_ is a a selector for the device and is dependent upon the value of
-_protocol_.
-For 'usb', _address_ will be a path to the ```/dev/``` entry for the
-USB/serial connection. 
-For the other protocols, _address_ will be either the IP address or hostname
-of the ethernet connected module and the optional _port_ can be specified if
-necessary.
-
-_Connection string_ id required and has no default.
-
-_Module description_ supplies some text describing the module.
-This text is used by the plugin to elaborate log messages and may be used by
-other applications to improve the legibility of their output.
-Optional.
-No default.
-
-_Channels_ is an optional collection of channel definitions, each of which
-describes a relay channel and how it should be operated.
-Each channel definition maps a relay channel in the Signal K domain into a
-relay channel on a physical device.
-
-If _Channels_ is not defined, then the plugin will automatically construct a
-definition for each channel using some minimal defaults.
-It is much better to supply a comprehensive _Channels_ array definition since
-this usefully documents the implemented solution.
-
-Each channel definition has the following properties.
-
-_Relay index_ specifies the relay channel number on the selected device to
-which the definition relates (relay channels are numbered from 1).
-Required.
-No default.
-
-_Signal K channel id_ specifies a unique identifier for the channel in the
-Signal K domain.
-Optional.
-Defaults to the value of _Relay index_. 
-
-_Channel description_ supplies some text describing the channel.
-This text is used by the plugin to elaborate log messages and may be used by
-other applications to improve the legibility of their output.
-Optional.
-Defaults to a period separated catenation of the values supplied for _Signal
-K module id_ and _Signal K channel id_.
-
-_Trigger path_ specifyies a key path whose value should be mapped onto this
-channel's relay state.
-In general, this path must address a value which is either 0 (for OFF) or 
-non-zero (for ON) and so is especially useful for mapping the value of some
-switch in ```electrical.switches.*.state```.
-Optional.
-Defaults to the value of _Default trigger path_.
-
-_Notification trigger ON states_ is a string array whose members specify the
-notification alert states which define an ON condition for this channel.
-Only relevent when a notification is used as a _Trigger path_.
-Optional.
-Defaults to the value of _Default notification trigger ON states_.
-
-The following snippet illustrates how module definitions appear in the JSON
-configuration file.
+The __modules__ property value is an array of module definitions each
+of which describes a relay device you wish the plugin to operate.
 ```
     "modules": [
       {
-        "id": "usb0",
-        "deviceid": "USB-RELAY02",
-        "cstring": "usb:/dev/ttyACM0",
-        "description": "Helm panel alarm relay module",
+        "id": "eth0",
+        "description": "ETH484 evaluation module #223-1677",
+        "deviceid": "ETH484",
+        "devicecstring": "tcp:password@192.168.1.190:17494",
         "channels": [
-          { "index": 1, "description: "Alarm system beacon" },
-          { "index": 2, "description": "Alarm system annunciator" }
+          { "index": 1, "description": "ETH relay 1" },
+          { "index": 2, "description": "ETH relay 2" },
+          { "index": 3, "description": "ETH relay 3" },
+          { "index": 4, "description": "ETH relay 4" }
         ]
-      },
+      }
       {
-        "id": "wifi0",
-        "deviceid": "ETH-XXX04",
-        "cstring": "http://192.168.1.11/",
+        "id": "usb0",
+        "description": "USB-RLY02 evaluation module #117-556",
+        "deviceid": "USB-RLY02",
+        "devicecstring": "usb:/dev/ttyACM0",
         "channels": [
-          { "index": 1, "description": "En-suite towel rail" },
-          { "index": 2, "description": "Dayhead towel rail" },
-          { "index": 3, "description": "En-suite towel rail" },
-          { "index": 4, "description": "Dayhead towel rail" }
+          { "index": 1, "description": "USB Relay 1" },
+          { "index": 2, "description": "USB Relay 2" }
         ]
       }
     ]
 ```
+
+Each module definition has the following properties.
+
+The _id_ property value must supply a unique identifier for the module
+being defined. This value will be used as part of the Signal K path
+used to report relay states (by replacing the '{m}' token in the
+__switchpath__ property value discussed above) and will also be used in
+status and error messaging.
+This value is required and has no default.
+
+The __description__ property value can be used to supply some
+documentary text.
+This value is optional and defaults to the empty string.
+
+The __deviceid__ property value specifies what type of physical device
+is being used by providing a device identifier which is typically the
+Devantech model code.
+This value is required and has no default.
+
+The __devicecstring__ property value supplies a connection string that
+tells the plugin how to connect to the relay module.
+Devantech supply devices that can connect by USB and ethernet, and each
+type of connection implies a different style of connection string.
+
+A USB connection string has the form
+
+    "__usb:__*device-path*" where
+
+*device-path* specifies the serial device representing the physical
+port to which the associated device is connected.
+Not all Linux distributions build their serial device paths in the same
+way - you can usually find the device path assigned to a USB connection
+by examining the contents of the ```/dev/``` directory before and after
+plugging in the USB device.
+
+An ethernet connection string has the form
+
+    "__eth:__[*password*__@__]*address*__:__*port*"
+
+Where *address* is the IP address or hostname assigned to the relay
+device, *port* is the port number on which it provides service and
+*password* is the optional password required to operate the device.
+All of these values are defined when you configure the Devantech
+for first use: consult the appropriate Devantech user guide. 
+
+A connection string must be specified and has no default.
+
+The __channels__ property introduces an array of channel definitions
+each of which describes a relay channel on your device.
+
+The __index__ property defines the relay module channel to which the
+channel definition relates.
+This value is used by the plugin to overwrite the '{c}' token in the
+__switchpath__ property discussed earlier and is also used in status
+and error reporting.
+A value must be specified an there is no default.
+
+Usually, the __index__ property value maps directly onto a relay
+channel on the selected device, but if this doesn't suit (maybe a
+physical relay has failed), then the __address__ property can be used
+to map a module channel index onto a different relay channel on the
+associated physical device.
+
+The __description__ property value supplies some narrative that is
+used in status and error reporting and, more importantly, is used 
+to decorate the module switch bank channel with meta information that
+can be picked up by other Signal K processes.
+
+### Device definitions
+
+The __devices__ property defines an array of *device definitions*, each
+of which describes the physical and interfacing characteristics of a
+supported relay devices.
+A device must be defined here before it can be configured for use in a
+module definition.
+The plugin installation includes device definitions for all of the
+Devantech relay modules that were available at the time of release, but
+if you need to add an unsupported device, then read-on...
+
+Each device definition has the following properties.
+
+The _id_ property value supplies string containing a list of
+space-separated identifiers for each of the deviceis to which the
+definition applies.
+Typically these identifiers should be the device manufacturer's model
+number.
+A value is required and there is no default.
+
+The __size__ property value specifies the number of relay channels
+supported by the device.
+A value is required and there is no default.
+
+The __protocols__ array property introduces a list of protocol
+definitions each of which defines a communication protocol supported by
+the device.
+For most devices you will only need to specify one.
+Each protocol definition has the following properties.
+
+The __id__ property value specifies the protocol type being defined and
+must be one of 'usb' or 'tcp'.
+A value is required and there is no default.
+
+The __statuscommand__ property value supplies the string that must be
+transmitted to the device to elicit a status report.
+A value is required and there is no default.
+
+The __statuscommand__ property value defines the number of bytes which
+constitute the status report message transmitted by the device in
+response to a status command.
+A value is required and the default is 1.
+
+The __authenticationtoken__ property value specifies the format for an
+authentication token '{A}' which can be used when defining operating
+commands (see below).
+Some Devantech protocols require that a device password is accompanied
+by some identifying character sequence and the format of that sequence
+can be specified here in terms of any username {u} and password {p}
+tokens.
+For example, one of the Devantech TCP protocols can be password
+protected and passwords are introduced into commands by preceeding them
+with a 'y' character giving an authentication token format of 'y{p}'.
+A value is optional and there is no default.
+
+The __channels__ array property introduces a list of channel
+definitions each of which specifies the commands required to operate a
+particular relay on the device.
+Relays are identified by an ordinal address in the range 1..__size__
+and each channel can be defined explicitly, but if there is a common
+format for commands that applies to all channels, then a pattern can be
+defined for the fake channel with address 0 which will be elaborated
+for each of the real channels on the device.
+
+Each channel definition has the following properties.
+
+The __address__ property value gives the ordinal number of the relay
+channel that is being defined (or 0 for a generic definition).
+A value is required and the default is 0.
+
+The __oncommand__ property introduces a string that should be
+transmitted to the device to turn the relay identified by __address__
+ON.
+
+The __offcommand__ property introduces a string that should be
+transmitted to the device to turn the relay identified by __address__
+OFF.
+
+Both __oncommand__ and __offcommand__ property values should be simple
+JSON formatted strings and can contain embedded escape sequences.
+Additionally, the the following wildcard tokens will be substituted
+with real values before string transmission.
+
+| Token  | Replacement value                                                        |
+|:-------|:-------------------------------------------------------------------------|
+| {c}    | The ASCII encoded address of the channel being processed.                |
+| {C}    | The binary encoded address of the channel being processed.               |
+| {A}    | The value of any defined authentication token (after token replacement). | 
+| {u}    | The value of any defined module userid.                                  |
+| {p}    | The value of any defined module password.                                |
+
+The __statusmask__ property value can be used to introduce a number
+that will be bitwise AND-ed with channel state reports received from
+the device so as to obtain a status value for the channel.
+If no value is supplied then the plugin will compute a mas value from
+the channel __address__ using the formula (1 << (*address* - 1)).
+Not requires and the internal default is the computed value.
+
 ## Usage
 
 __signalk-devantech__ has no special run-time usage requirement.
@@ -456,51 +381,36 @@ reviewing the server state model in a web browser.
 
 Status and error messages are written to the Signal K server logs.
 
-### Simple use example
-
-I use a two-channel USB relay module on my barge to interface my Signal K host
-to my helm alarm system.
-My alarm system is multi-channel and supported by beacon and sounder alerts
-and I dedicate one channel to Signal K input triggered by the closing of one
-of the relays.
-The second relay connects directly with the beacon.
-
 ## Supported relay modules
 
 __signalk-devantech__ supports relay modules manufactured by:
 
-    Devantech Ltd
-    Maurice Gaymer Road
-    Attleborough
-    NR17 2QZ
-    England 
+    Devantech Ltd\
+    Maurice Gaymer Road\
+    Attleborough\
+    NR17 2QZ\
+    England\
 
-    Telephone: +44 (0)1953 457387 
+    Telephone: +44 (0)1953 457387\
     Fax: +44 (0)1953 459793
 
-    Website: (www.robot-electronics.co.uk)[www.robot-electronics.co.uk]
+    Website: [www.robot-electronics.co.uk](https://www.robot-electronics.co.uk/)
 
 The following table lists the relay modules against which the plugin
 implementation was developed.
-
-### [USB relays](https://www.robot-electronics.co.uk/products/relay-modules/usb-relay/usb-rly02-sn.html)
 
 |Relay module   |No of relays|Connection|Protocols|
 |:--------------|:----------:|:--------:|:-------:|
 |USB-RLY02-SN   |2           |USB       |usb      |
 |USB-RLY02      |2           |USB       |usb      |
-|USB-RLY08B     |2           |USB       |usb      |
-|USB-RLY82      |2           |USB       |usb      |
-|USB-RLY16      |2           |USB       |usb      |
-|USB-RLY16L     |2           |USB       |usb      |
-|USB-OPTO-RLY88 |2           |USB       |usb      |
-|USB-RLY816     |2           |USB       |usb      |
-|USB-RELAY02    |2           |USB       |usb      |
-|USB-RELAY02    |2           |USB       |usb      |
-|USB-RELAY02    |2           |USB       |usb      |
-|USB-RELAY02    |2           |USB       |usb      |
-|USB-RELAY02    |2           |USB       |usb      |
-|USB-RELAY02    |2           |USB       |usb      |
+|USB-RLY08B     |8           |USB       |usb      |
+|USB-RLY82      |8           |USB       |usb      |
+|USB-RLY16      |16          |USB       |usb      |
+|USB-RLY16L     |16          |USB       |usb      |
+|USB-OPTO-RLY88 |8           |USB       |usb      |
+|USB-RLY816     |16          |USB       |usb      |
 
-USB-RLY02-SN https://www.robot-electronics.co.uk/products/relay-modules/usb-relay/usb-rly02-sn.html
+## Author
 
+Paul Reeve <preeve@pdjr.eu>\
+October 2020

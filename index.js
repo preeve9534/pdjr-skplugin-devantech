@@ -1,17 +1,17 @@
-/**
- * Copyright 2018 Paul Reeve <paul@pdjr.eu>
+/**********************************************************************
+ * Copyright 2018 Paul Reeve <preeve@pdjr.eu>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you
+ * may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
-
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 const Log = require("./lib/signalk-liblog/Log.js");
@@ -82,7 +82,7 @@ module.exports = function(app) {
          * specified switch channel paths.
          */
 
-        var flattenedChannels = options.modules.reduce((a,sb) => a.concat(sb.channels.map(ch => { return({"instance": sb.id, "index": ch.index, "description": ch.description })})), []);
+        var flattenedChannels = options.modules.reduce((a,sb) => a.concat(sb.channels.map(ch => ({"instance": sb.id, "index": ch.index, "description": ch.description }))), []);
         var deltas = flattenedChannels.map(c => ({
           "path": options.switchpath.replace('{m}', c.instance).replace('{c}', c.index) + ".meta",
           "value": { "name": c.description, "type": "relay" }
@@ -98,8 +98,9 @@ module.exports = function(app) {
             module.connection.stream.write(module.statuscommand);
           },
           ondata: (module, buffer) => {
-            debuglog.N("comms", "module %s: %s data received", module.id, module.cobject.protocol);
-            processData(module, buffer, options.switchpath);
+            debuglog.N("comms", "module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
+            var stateUpdates = getStateUpdates(module, buffer, options.switchpath);
+            if (stateUpdates) app.handleMessage(plugin.id, makeDelta(plugin.id, stateUpdates));
           },
           onclose: (module) => {
             debuglog.N("comms", "module %s: %s port closed", module.id, module.cobject.protocol); 
@@ -108,8 +109,9 @@ module.exports = function(app) {
       });
 
       /****************************************************************
-       * Subscribe to the control path an process controls
+       * Subscribe to the control path and process commands
        */
+
       var controlchannel = options.controlchannel.match(/^(.+)\:(.+)$/);
       if (controlchannel) {
         switch (controlchannel[1]) {
@@ -119,7 +121,6 @@ module.exports = function(app) {
               log.N("listening on control channel %s", options.controlchannel);
               unsubscribes.push(stream.skipDuplicates().onValue(notification => {
                 var command = JSON.parse(notification.description);
-                console.log("KKKKKKKKKKKKKKKKKK %o", command);
                 if (command) {
                   if (command.moduleid !== undefined) {
                     var module = options.modules.reduce((a,m) => ((m.id == command.moduleid)?m:a), null);
@@ -182,23 +183,28 @@ module.exports = function(app) {
    * Update each channel in <module> with:
    * - oncommand property
    * - offcommand property
-   * - statusmask prooperty
+   * - statusmask property
    */ 
 
   function validateModule(module, options) {
-    console.log(JSON.stringify(module));
     var device, protocol, deviceChannel;
     if (module.deviceid) {
       if (device = options.devices.reduce((a,d) => ((d.id.split(' ').includes(module.deviceid))?d:a), null)) {
-        console.log(JSON.stringify(device));
+        module.size = device.size;
         if (module.cobject = parseConnectionString(module.devicecstring)) {
-          console.log(JSON.stringify(module));
           if (protocol = device.protocols.reduce((a,p) => ((module.cobject.protocol == p.id)?p:a), null)) {
-            console.log(JSON.stringify(protocol));
             module.statuscommand = protocol.statuscommand;
+            module.statuslength = (protocol.statuslength === undefined)?1:protocol.statuslength;
             module.authenticationtoken = protocol.authenticationtoken;
+            if ((protocol.channels.length == 1) && (protocol.channels[0].address == 0)) {
+              for (var i = 0; i <= device.size; i++) {
+                var blob = { "oncommand": protocol.channels[0].oncommand, "offcommand": protocol.channels[0].offcommand, "address": i };
+                protocol.channels.push(blob);
+              }
+            }
             module.channels.forEach(channel => {
-              if (deviceChannel = protocol.channels.reduce((a,dc) => (((channel.address?channel.address:channel.index) == dc.address)?dc:a), null)) {
+              deviceChannel = protocol.channels.reduce((a,dc) => (((channel.address?channel.address:channel.index) == dc.address)?dc:a), null);
+              if (deviceChannel) {
                 channel.oncommand = deviceChannel.oncommand;
                 channel.offcommand = deviceChannel.offcommand;
                 channel.statusmask = (deviceChannel.statusmask !== undefined)?deviceChannel.statusmask:(1 << (deviceChannel.address - 1));
@@ -223,16 +229,18 @@ module.exports = function(app) {
     function parseConnectionString(cstring) {
       var retval = null;
       var matches, username = undefined, password = undefined, protocol = undefined, device = undefined, port = undefined;
-
-      if (cstring.includes('@')) {
-        [ password, cstring ] = cstring.split('@', 2).map(v => v.trim());
-        if (password.contains(':')) [ username, password ] = password.split(':', 2).map(v => v.trim());
-      }
-      if (matches = cstring.match(/^tcp\:(.+)\:(\d+)/)) {
-        retval = { "protocol": "tcp", "host": matches[1], "port": matches[2], "password": password };
-      }
-      if (matches = cstring.match(/^usb\:(.+)/)) {
-        retval = { "protocol": "usb", "device": matches[1] };
+      
+      [ protocol, cstring, port ] = cstring.split(':').map(v => v.trim());
+      switch (protocol) {
+        case "tcp":
+          if (cstring.includes('@')) [ password, cstring ] = cstring.split('@', 2).map(v => v.trim());
+          retval = { "protocol": "tcp", "host": cstring, "port": port, "password": password };
+          break;
+        case "usb":
+          retval = { "protocol": "usb", "device": cstring };
+          break;
+        default:
+          break;
       }
       return(retval);
     }
@@ -349,7 +357,7 @@ module.exports = function(app) {
         retval = retval.replace('{A}', module.authenticationtoken);
         retval = retval.replace("{c}", channel.index);
         retval = retval.replace('{C}', String.fromCharCode(parseInt(channel.index, 10)));
-        retval = retval.replace("{p}", channel.index);
+        retval = retval.replace("{p}", module.cobject.password);
         retval = retval.replace("{u}", channel.index);
         retval = retval.replace(/\\(\d\d\d)/gi, (match) => String.fromCharCode(parseInt(match, 8)));
         retval = retval.replace(/\\0x(\d\d)/gi, (match) => String.fromCharCode(parseInt(match, 16)));
@@ -359,29 +367,36 @@ module.exports = function(app) {
   }
 
   /********************************************************************
-   * Process a status message received from relay <module>. The message
-   * is passed in <buffer> and will be either a status byte (for eight
-   * channel devices) or a 16-bit word (for 16-channel devices). The
-   * status value is tested against each channel's status mask and
-   * hence used to update each channel's Signal K path state value.
+   * Return an array of state updates for <module> derived from
+   * processing <buffer> which is assumed to contain a status message
+   * received from the relay device associated with <module>.
    */
 
-  function processData(module, buffer, switchpath) {
-    console.log("CONNECT MODULE");
+  function getStateUpdates(module, buffer, switchpath) {
+    var moduleState = null, channelState, retval = null;
     if (switchpath) {
-      var moduleState = (buffer)?buffer.readUInt8(0):null;
+      switch (module.cobject.protocol) {
+        case "tcp":
+          if ((module.size <= 8) && (module.statuslength == buffer.length)) moduleState = (buffer.readUInt16BE(0) >> 8);
+          break;
+        case "usb":
+          if ((module.size <= 8) && (module.statuslength == buffer.length)) moduleState = buffer.readUInt8(0);
+          break;
+        default:
+          break;
+      }
       if (moduleState !== null) {
-        var deltaValues = [];
+        retval = [];
         module.channels.forEach(channel => {
-          var channelState = (moduleState & channel.statusmask)?1:0;
-          deltaValues.push({
+          channelState = (moduleState & channel.statusmask)?1:0;
+          retval.push({
             "path": switchpath.replace('{m}', module.id).replace('{c}', channel.index) + ".state",
             "value": channelState
           });
         });
-        app.handleMessage(plugin.id, { "updates": [{ "source": { "device": plugin.id }, "values": deltaValues }] });
       }
     }
+    return(retval);
   }
 
   /********************************************************************
