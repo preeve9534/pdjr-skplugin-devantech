@@ -247,12 +247,9 @@ __switchpath__ property discussed earlier and is also used in status
 and error reporting.
 A value must be specified an there is no default.
 
-Usually, it is sensible  to make the __index__ property value match the address of the corresrelay
-channel on the selected device, but if this doesn't suit (maybe a
-physical relay has failed), then the __address__ property can be used
-to map a module channel index onto a different relay channel on the
-associated physical device.
+Usually, it is sensible  to make the __index__ property value match the address of the corresponding relay channel on the selected device, but if this doesn't suit (maybe a physical relay has failed), then the __address__ property can be used to map a module channel index onto a different relay channel on the associated physical device.
 
+The __address__ property v
 The __description__ property value supplies some narrative that is
 used in status and error reporting and, more importantly, is used 
 to decorate the module switch bank channel with meta information that
@@ -399,6 +396,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjc3NTAwNDAzLDE0MDg4MzQ4MzAsMTc0Nj
-I1NDc2XX0=
+eyJoaXN0b3J5IjpbMTMxNjg3MDAwMiwxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
