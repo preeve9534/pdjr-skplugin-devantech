@@ -170,11 +170,8 @@ The plugin installation includes device definitions for all of the Devantech rel
 
 Each device definition has the following properties.
 
-The _id_ property value supplies string containing a list of
-space-separated identifiers for each of the deviceis to which the
-definition applies.
-Typically these identifiers should be the device manufacturer's model
-number.
+The required __id__ property value supplies string containing a list of space-separated identifiers, one for each of the devices to which the definition applies.
+Typically these identifiers should be the device manufacturer's model number.
 A value is required and there is no default.
 
 The __size__ property value specifies the number of relay channels
@@ -298,6 +295,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTY0ODU4NzgyMCwtNjc3MDg5MDczLDE0MD
+eyJoaXN0b3J5IjpbLTE3NzU0MTU4MCwtNjc3MDg5MDczLDE0MD
 g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
