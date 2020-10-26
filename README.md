@@ -217,8 +217,7 @@ documentary text.
 This value is optional and defaults to the empty string.
 
 The __deviceid__ property value specifies what type of physical device
-is being used to implement this module by providing a device identifier (see 
-Devantech model code.
+is being used to implement this module by providing a device identifier (see the *Device definitions* section below for more detail).
 This value is required and has no default.
 
 The __devicecstring__ property value supplies a connection string that
@@ -411,6 +410,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3MzU4NzI4OCwxNDA4ODM0ODMwLDE3ND
+eyJoaXN0b3J5IjpbLTE5NDEyOTE4NSwxNDA4ODM0ODMwLDE3ND
 YyNTQ3Nl19
 -->
