@@ -43,23 +43,17 @@ When __signalk-devantech__ first starts it creates appropriate Signal K paths fr
 
 ### Relay state information
 
-The state value of each Signal K path is set when the module starts and after each relay update operation.
-State values in Signal K are only ever set from device status reports
-and hence should always reflect the actual physical state of each relay.
+The state value of each Signal K path is set when the module starts and after each relay update operation. State values in Signal K are only ever set from device status reports and hence should always reflect the actual physical state of each relay.
 
 ### Command processing
  
-A relay channel is operated by sending __signalk-devantech__ a string
-representation of a JSON *control-message* of the form:
+A relay channel is operated by sending __signalk-devantech__ a string representation of a JSON *control-message* of the form:
 
     { "moduleid": "*m*", "channelid": *c*, "state": s }
 
-where *m* and *c* have the meaning discussed above and *s* is the value
-0 or 1 (meaning OFF or ON respectively).
+where *m* and *c* have the meaning discussed above and *s* is the value 0 or 1 (meaning OFF or ON respectively).
 
-The simplest way of delivering a *control-message* is to pass it in a
-notification in which case the message should be the value of the
-notification's description property.
+The simplest way of delivering a *control-message* is to pass it in a notification in which case the message should be the value of the notification's description property.
 
 When the plugin receives a control-message it attempts to convert it
 into a JSON object using the JSON.parse() function and then validates
@@ -348,6 +342,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODc2NDE2MTMwLDE0MDg4MzQ4MzAsMTc0Nj
-I1NDc2XX0=
+eyJoaXN0b3J5IjpbLTEyMTczNjE3NjYsMTQwODgzNDgzMCwxNz
+Q2MjU0NzZdfQ==
 -->
