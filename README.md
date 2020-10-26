@@ -183,7 +183,7 @@ transmitted to the device to elicit a status report.
 
 The required __statuslength__ property value specifies the number of bytes in the status report message transmitted by the device in response to a status command. The value defaults to 1.
 
-The __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating commands (see below). Some Devantech protocols require that a device password is decorated with some identifying character sequence and the format of that sequence can be specified here in terms of any username {u} and password {p}
+The __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating commands (see below). Some Devantech protocols require that a device password is decorated with some identifying character sequence and the format of that sequence can be specified here and will typically include the token {p} which will be interpolated with a s 
 tokens.
 For example, one of the Devantech TCP protocols can be password
 protected and passwords are introduced into commands by preceeding them
@@ -276,6 +276,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNTcwNTI2NDgsLTY3NzA4OTA3MywxNDA4OD
-M0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTI1MDI4OTk0MywtNjc3MDg5MDczLDE0MD
+g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
