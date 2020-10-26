@@ -180,11 +180,9 @@ The required __id__ property value specifies the protocol type being defined and
 
 The required __statuscommand__ property value supplies the string that must be
 transmitted to the device to elicit a status report.
-A value is required and there is no default.
 
-The __statuscommand__ property value defines the number of bytes which
-constitute the status report message transmitted by the device in
-response to a status command.
+The required __statuslength__ property value defines the number of bytes in the
+status report message transmitted by the device in response to a status command.
 A value is required and the default is 1.
 
 The __authenticationtoken__ property value specifies the format for an
@@ -285,6 +283,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMzQzNzc4MDAsLTY3NzA4OTA3MywxNDA4OD
-M0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTE5MDM5MTUzMzgsLTY3NzA4OTA3MywxND
+A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
