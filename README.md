@@ -90,7 +90,7 @@ and hence should always reflect the actual physical state of each relay.
 A relay channel is operated by sending __signalk-devantech__ a string
 representation of a JSON *control-message* of the form:
 
-    { "moduleid": *m*, "channelid": *c*, "state": s }
+    { "moduleid": "*m*", "channelid": *c*, "state": s }
 
 where *m* and *c* have the meaning discussed above and *s* is the value
 0 or 1 (meaning OFF or ON respectively).
@@ -413,5 +413,5 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbLTE5NjI3NDgzNDgsMTc0NjI1NDc2XX0=
 -->
