@@ -159,20 +159,14 @@ The required __index__ property defines the relay module channel to which the ch
 
 The optional __address__ property value defines the physical channel on the remote device with which this channel is associated. If this property is omitted, then the plugin will use the value of the __index__ property as the channel address.
  
-The __description__ property value supplies some narrative that is used in status and error reporting and, more importantly, is used 
-to decorate the module switch bank channel with meta information that
-can be picked up by other Signal K processes.
+The __description__ property value supplies some narrative that is used in status and error reporting and, more importantly, is used to decorate the module switch bank channel with meta information that can be picked up by other Signal K processes.
 
 ### Device definitions
 
-The __devices__ property defines an array of *device definitions*, each
-of which describes the physical and interfacing characteristics of a
-supported relay devices.
-A device must be defined here before it can be configured for use in a
-module definition.
-The plugin installation includes device definitions for all of the
-Devantech relay modules that were available at the time of release, but
-if you need to add an unsupported device, then read-on...
+The __devices__ property defines an array of *device definitions*, each of which describes the physical and interfacing characteristics of a supported relay device.
+A device must be defined here before it can be configured for use in a module definition.
+
+The plugin installation includes device definitions for all of the Devantech relay modules that were available at the time of release, but if you need to add an unsupported device, then read-on...
 
 Each device definition has the following properties.
 
@@ -304,6 +298,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTAwMzUzMzYzNywtNjc3MDg5MDczLDE0MD
+eyJoaXN0b3J5IjpbMTY0ODU4NzgyMCwtNjc3MDg5MDczLDE0MD
 g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
