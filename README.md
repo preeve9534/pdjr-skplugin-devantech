@@ -93,7 +93,7 @@ The plugin configuration file has the following general structure.
 }
 ```
 
-If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [*Module definitions*]( section.
+If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [*Module definitions*](#Module definitions)  section.
 
 ### Global properties
 
@@ -332,6 +332,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTExMTY0MzgxNzUsMTQwODgzNDgzMCwxNz
-Q2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTY3NzA4OTA3MywxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
