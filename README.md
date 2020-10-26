@@ -149,14 +149,9 @@ The required __deviceid__ property value supplies an identifier which selects a 
 The required __devicecstring__ property value supplies a connection string that
 tells the plugin how to connect to the physical device. There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless devices).
 
-A USB connection string has the form "__usb:__*device-path*" where
-*device-path* specifies the serial device representing the physical
-port to which the associated device is connected.
-A typical value for a USB __devicecstring__ might be "usb:/dev/ttyACM0".
+A USB connection string has the form "__usb:__*device-path*" where *device-path* specifies the serial device representing the physical port to which the associated device is connected. A typical value for a USB __devicecstring__ might be "usb:/dev/ttyACM0".
 
-An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated device, *port* is the port number on which it provides service and *password* is the optional password required to operate the device. All of these values are defined when you configure the Devantech relay bank for first use: consult the appropriate Devantech user guide for more information. 
-
-A connection string must be specified and has no default.
+An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated device, *port* is the port number on which it provides service and *password* is the optional password required to operate the device. A typical value for an  All of these values are defined when you configure the Devantech relay bank for first use: consult the appropriate Devantech user guide for more information. 
 
 The __channels__ property introduces an array of channel definitions
 each of which describes a relay channel.
@@ -311,6 +306,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjc0ODc4MzY4LC02NzcwODkwNzMsMTQwOD
+eyJoaXN0b3J5IjpbNDYyMjA5NzM1LC02NzcwODkwNzMsMTQwOD
 gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
