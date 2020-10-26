@@ -175,7 +175,7 @@ connected module.
 ### Module definitions
 
 The __modules__ property value is an array of module definitions each
-of which describes a relay device you wish the plugin to operate.
+of which describes a relay device you wish the plugin to operate. For example:
 ```
     "modules": [
       {
@@ -411,6 +411,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwMDk5NTQzNjMsMTQwODgzNDgzMCwxNz
+eyJoaXN0b3J5IjpbLTEzMTg1OTI0MTgsMTQwODgzNDgzMCwxNz
 Q2MjU0NzZdfQ==
 -->
