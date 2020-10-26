@@ -93,14 +93,11 @@ The plugin configuration file has the following general structure.
 }
 ```
 
-If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [*Module definitions*](#Module definitions)  section.
+If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [*Module definitions*](#module-definitions)  section.
 
 ### Global properties
 
-The __controlchannel__ property value introduces a configuration string
-which sets up the channel on which the plugin will listen for relay
-operating commands.
-The configuration string must have the form "*channel-type*__:__*channel-id*" with the following value constraints.
+The required __controlchannel__ property value introduces a configuration string which sets up the channel on which the plugin will listen for relay operating commands. The configuration string must have the form "*channel-type*__:__*channel-id*" with the following value constraints.
 
 | *channel-type*   | *channel-id*                                               |
 |:-----------------|:-----------------------------------------------------------|
@@ -332,6 +329,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTY3NzA4OTA3MywxNDA4ODM0ODMwLDE3ND
-YyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTEwMjMwNDA3OSwtNjc3MDg5MDczLDE0MD
+g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
