@@ -233,12 +233,12 @@ An ethernet connection string has the form   "__eth:__[*password*__@__]*address*
 device, *port* is the port number on which it provides service and
 *password* is the optional password required to operate the device.
 All of these values are defined when you configure the Devantech
-relay bank for first use: consult the appropriate Devantech user guide for more informa. 
+relay bank for first use: consult the appropriate Devantech user guide for more information. 
 
 A connection string must be specified and has no default.
 
 The __channels__ property introduces an array of channel definitions
-each of which describes a relay channel on your device.
+each of which describes a relay channel.
 
 The __index__ property defines the relay module channel to which the
 channel definition relates.
@@ -247,7 +247,7 @@ __switchpath__ property discussed earlier and is also used in status
 and error reporting.
 A value must be specified an there is no default.
 
-Usually, the __index__ property value maps directly onto a relay
+Usually, it is sensible  __index__ property value maps directly onto a relay
 channel on the selected device, but if this doesn't suit (maybe a
 physical relay has failed), then the __address__ property can be used
 to map a module channel index onto a different relay channel on the
@@ -399,6 +399,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzcwODE5NzUyLDE0MDg4MzQ4MzAsMTc0Nj
+eyJoaXN0b3J5IjpbMjg2Nzk3NjM5LDE0MDg4MzQ4MzAsMTc0Nj
 I1NDc2XX0=
 -->
