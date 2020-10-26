@@ -144,7 +144,7 @@ The required __id__ property value must supply a unique identifier for the modul
 
 The optional __description__ property value can be used to supply some documentary text. This value is optional and defaults to the empty string.
 
-The required __deviceid__ property value supplies an identifier which selects a specific device defin what type of physical device is being used to implement this module by providing a device identifier (see the [Device definitions](#device-definitions) section below for more detail).
+The required __deviceid__ property value supplies an identifier which selects a specific device definition appropriate to the physical device is being used to implement this module. See the [Device definitions](#device-definitions) section below for more detail.
 
 The required __devicecstring__ property value supplies a connection string that
 tells the plugin how to connect to the physical device. There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless devices).
@@ -311,6 +311,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE1MjUzMzU5ODUsLTY3NzA4OTA3MywxND
-A4ODM0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbMjc0ODc4MzY4LC02NzcwODkwNzMsMTQwOD
+gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
