@@ -174,14 +174,11 @@ The required __id__ property value supplies string containing a list of space-se
 
 The required __size__ property value specifies the number of relay channels supported by the device.
 
-The required __protocols__ array property introduces a list of protocol definitions each of which defines a communication protocol supported by the device (usually you will only need to specify one protocol).
-Each protocol definition has the following properties.
+The required __protocols__ array property introduces a list of protocol definitions each of which defines a communication protocol supported by the device (usually you will only need to specify one protocol). Each protocol definition has the following properties.
 
-The __id__ property value specifies the protocol type being defined and
-must be one of 'usb' or 'tcp'.
-A value is required and there is no default.
+The required __id__ property value specifies the protocol type being defined and must be one of 'usb' or 'tcp'. The value defaults to 'usb'.
 
-The __statuscommand__ property value supplies the string that must be
+The required __statuscommand__ property value supplies the string that must be
 transmitted to the device to elicit a status report.
 A value is required and there is no default.
 
@@ -288,6 +285,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODA5ODk1MTQzLC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbMzQzNzc4MDAsLTY3NzA4OTA3MywxNDA4OD
+M0ODMwLDE3NDYyNTQ3Nl19
 -->
