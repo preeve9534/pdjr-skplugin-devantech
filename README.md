@@ -222,13 +222,9 @@ This value is required and has no default.
 
 The __devicecstring__ property value supplies a connection string that
 tells the plugin how to connect to the physical device.
-There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless rboth xWiFi and wired Devantech supply devices that can connect by USB and ethernet, and each
-type of connection implies a different style of connection string.
+There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless devices).
 
-A USB connection string has the form
-
-    "__usb:__*device-path*" where
-
+A USB connection string has the form "__usb:__*device-path*" where
 *device-path* specifies the serial device representing the physical
 port to which the associated device is connected.
 Not all Linux distributions build their serial device paths in the same
@@ -410,6 +406,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTUwNDU4NjI3LDE0MDg4MzQ4MzAsMTc0Nj
-I1NDc2XX0=
+eyJoaXN0b3J5IjpbMTQ2NDQ2NjM0NCwxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
