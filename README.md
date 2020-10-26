@@ -31,33 +31,19 @@ __signalk-devantech__ relies on a configuration file which:
 
 3. Specifies the modules which the user wishes the plugin to operate through a collection of *module definitions* which identify the module device type, map a Signal K channel onto each device relay and name each channel for documentary and reporting purposes.
 
-The default configuration file includes an expandable set of device definitions for products in Devantech's USB, ETH and WImodel ranges.
+The default configuration file includes an expandable set of device definitions for products in Devantech's USB, ETH and WIFI model ranges.
 
-For each configured module, __signalk-devantech__ performs three
-distinct tasks: firstly, it builds a Signal K path for each module
-channel and decorates the path with some documentary meta data;
-secondly it maintains state information for each path which reflects
-the current relay state; and finally it accepts commands from the
-plugin control channel and uses these to operate relays on attached
-devices.
+For each configured module, __signalk-devantech__ performs three distinct tasks: firstly, it builds a Signal K path for each module channel and decorates the path with some documentary meta data; secondly it maintains state information for each path which reflects the current relay state; and finally it accepts commands from the plugin control channel and uses these to operate relays on attached devices.
 
 ### Signal K data paths and meta information
 
-By default, a relay device is represented in Signal K by a collection
-of paths with the general pattern 'electrical.switches.bank.*m*.*c*',
-where *m* is an arbitrary module identifier and *c* is a natural
-number indexing a channel within a module.
-This structure echoes the Signal K representation of NMEA switch banks,
-but here we'll call it a "relay bank" to avoid confusion.
+By default, a relay device is represented in Signal K by a collection of paths with the general pattern 'electrical.switches.bank.*m*.*c*', where *m* is an arbitrary module identifier and *c* is a natural number indexing a channel within a module. This structure echoes the Signal K representation of NMEA switch banks.
 
-When __signalk-devantech__ first starts it creates appropriate Signal K
-paths from module definitions in its configuration file and adds meta
-property to each path describing the relay bank channel.
+When __signalk-devantech__ first starts it creates appropriate Signal K paths from module definitions in its configuration file and adds meta property to each path describing the relay bank channel.
 
 ### Relay state information
 
-The state value of each Signal K path is set when the module starts and
-after each relay update operation.
+The state value of each Signal K path is set when the module starts and after each relay update operation.
 State values in Signal K are only ever set from device status reports
 and hence should always reflect the actual physical state of each relay.
 
@@ -362,6 +348,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2ODI4OTI5NzIsMTQwODgzNDgzMCwxNz
-Q2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbODc2NDE2MTMwLDE0MDg4MzQ4MzAsMTc0Nj
+I1NDc2XX0=
 -->
