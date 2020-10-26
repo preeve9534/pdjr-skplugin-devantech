@@ -249,7 +249,7 @@ A value must be specified an there is no default.
 
 Usually, it is sensible  to make the __index__ property value match the address of the corresponding relay channel on the selected device, but if this doesn't suit (maybe a physical relay has failed), then the __address__ property can be used to map a module channel index onto a different relay channel on the associated physical device.
 
-The __address__ property v
+The optional __address__ property value defines the physical channel on the remote device which this  
 The __description__ property value supplies some narrative that is
 used in status and error reporting and, more importantly, is used 
 to decorate the module switch bank channel with meta information that
@@ -396,6 +396,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTMxNjg3MDAwMiwxNDA4ODM0ODMwLDE3ND
+eyJoaXN0b3J5IjpbMTU2NjY1NzA4MywxNDA4ODM0ODMwLDE3ND
 YyNTQ3Nl19
 -->
