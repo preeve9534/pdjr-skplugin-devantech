@@ -151,8 +151,7 @@ tells the plugin how to connect to the physical device. There are two styles of 
 
 A USB connection string has the form "__usb:__*device-path*" where *device-path* specifies the serial device representing the physical port to which the associated device is connected. A typical value for a USB __devicecstring__ might be "usb:/dev/ttyACM0".
 
-An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated device, *port* is the port number on which it provides service and *password* is the optional password required to operate the device. A typical value for an ethernet __devicecstring__ might be "eth:letmein@192.168.0.20:14555".
- All of these values are defined when you configure the Devantech relay bank for first use: consult the appropriate Devantech user guide for more information. 
+An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated device, *port* is the port number on which it provides service and *password* is the optional password required to operate the device. A typical value for an ethernet __devicecstring__ might be "eth:letmein@192.168.0.20:14555". These values you should use when constructing this string are defined when you configure a Devantech ETH or WIFI relay device for first use: consult the appropriate Devantech user guide for more information. 
 
 The __channels__ property introduces an array of channel definitions
 each of which describes a relay channel.
@@ -307,6 +306,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTg5OTMwMzk1NCwtNjc3MDg5MDczLDE0MD
-g4MzQ4MzAsMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbLTE3OTQ4OTE2NjIsLTY3NzA4OTA3MywxND
+A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
