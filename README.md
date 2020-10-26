@@ -227,13 +227,9 @@ There are two styles of value: one describes a USB connection and the other an e
 A USB connection string has the form "__usb:__*device-path*" where
 *device-path* specifies the serial device representing the physical
 port to which the associated device is connected.
-A typical value for __devicecstring__ might be "usb:/dev/ttyACM0"
+A typical value for a USB __devicecstring__ might be "usb:/dev/ttyACM0".
 
-An ethernet connection string has the form
-
-    "__eth:__[*password*__@__]*address*__:__*port*"
-
-Where *address* is the IP address or hostname assigned to the relay
+An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the relay
 device, *port* is the port number on which it provides service and
 *password* is the optional password required to operate the device.
 All of these values are defined when you configure the Devantech
@@ -403,6 +399,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwNzEzOTA3MDksMTQwODgzNDgzMCwxNz
-Q2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbMTEyMzU1NTkwMCwxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
