@@ -240,12 +240,7 @@ A connection string must be specified and has no default.
 The __channels__ property introduces an array of channel definitions
 each of which describes a relay channel.
 
-The __index__ property defines the relay module channel to which the
-channel definition relates.
-This value is used by the plugin to overwrite the '{c}' token in the
-__switchpath__ property discussed earlier and is also used in status
-and error reporting.
-A value must be specified an there is no default.
+The required __index__ property defines the relay module channel to which the channel definition relates. This value is used by the plugin to overwrite the '{c}' token in the __switchpath__ property discussed earlier and is also used in status and error reporting.
 
 Usually, it is sensible  to make the __index__ property value match the address of the corresponding relay channel on the selected device, but if this doesn't suit (maybe a physical relay has failed), then the __address__ property can be used to map a module channel index onto a different relay channel on the associated physical device.
 
@@ -396,6 +391,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTU2NjY1NzA4MywxNDA4ODM0ODMwLDE3ND
+eyJoaXN0b3J5IjpbLTIwMDQwOTkyOSwxNDA4ODM0ODMwLDE3ND
 YyNTQ3Nl19
 -->
