@@ -24,7 +24,7 @@ const fs = require('fs');
 
 const PLUGIN_SCHEMA_FILE = __dirname + "/schema.json";
 const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
-const DEBUG_KEYS = [ "state", "commands" ];
+const DEBUG_KEYS = [ "devices", "state", "commands" ];
 
 module.exports = function(app) {
   var plugin = {};
@@ -95,7 +95,7 @@ module.exports = function(app) {
           },
           onopen: (module) => { 
             debuglog.N("comms", "module %s: port %s open", module.id, module.cobject.device); 
-            module.connection.stream.write(module.statuscommand);
+            if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
           },
           ondata: (module, buffer) => {
             debuglog.N("comms", "module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
@@ -132,7 +132,7 @@ module.exports = function(app) {
                           if (relaycommand) {
                             module.connection.stream.write(relaycommand);
                             debuglog.N("commands", "transmitted operating command (%s) for module %s, channel %s", relaycommand, command.moduleid, command.channelid);
-                            module.connection.stream.write(module.statuscommand);
+                            if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
                           } else {
                             log.E("cannot recover operating command for module %s, channel %s", module.id, command.channelid);
                           }
@@ -378,6 +378,7 @@ module.exports = function(app) {
       switch (module.cobject.protocol) {
         case "tcp":
           if ((module.size <= 8) && (module.statuslength == buffer.length)) moduleState = (buffer.readUInt16BE(0) >> 8);
+          if ((module.size == 20) && (module.statuslength == buffer.length)) moduleState = (0 | (buffer.readUInt(0)) | (buffer.readUInt(1) << 8) | (buffer.readUInt(2) << 16));
           break;
         case "usb":
           if ((module.size <= 8) && (module.statuslength == buffer.length)) moduleState = buffer.readUInt8(0);

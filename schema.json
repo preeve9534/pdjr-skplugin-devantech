@@ -72,6 +72,7 @@
                       "address": { "title": "Relay channel address/index", "type": "number" },
                       "oncommand": { "title": "ON command", "type": "string" },
                       "offcommand": { "title": "OFF command", "type": "string" },
+                      "statuscommand": { "title": "Status command", "type": "string" },
                       "statusmask": { "title": "Mask to reveal channel state", "type": "number" }
                     }
                   }
@@ -119,61 +120,61 @@
           ]
         },
         {
-          "id": "ETH002",
+          "id": "ETH002 WIFI002",
           "size": 2,
           "protocols": [
             {
               "id": "tcp",
               "statuscommand": "$",
               "statuslength": 2,
-              "authenticationtoken": "",
+              "authenticationtoken": ",{p}",
               "channels": [
-                { "address": 0, "oncommand": ":DOA,{c},0,{A}", "offcommand": ":DOI,{c},0,{p}" }
+                { "address": 0, "oncommand": ":DOA,{c},0{A}", "offcommand": ":DOI,{c},0{A}" }
               ]
             }
           ]
         },
         {
-          "id": "ETH044 ETH484",
+          "id": "ETH044 ETH484 WIFI484",
           "size": 4,
           "protocols": [
             {
               "id": "tcp",
               "statuscommand": "$",
               "statuslength": 2,
-              "authenticationtoken": "",
+              "authenticationtoken": ",{p}",
               "channels": [
-                { "address": 0, "oncommand": ":DOA,{c},0,{A}", "offcommand": ":DOI,{c},0,{p}" }
+                { "address": 0, "oncommand": ":DOA,{c},0{A}", "offcommand": ":DOI,{c},0{A}" }
               ]
             }
           ]
         },
         {
-          "id": "ETH008",
+          "id": "ETH008 WIFI008",
           "size": 8,
           "protocols": [
             {
               "id": "tcp",
               "statuscommand": "$",
               "statuslength": 2,
-              "authenticationtoken": "",
+              "authenticationtoken": ",{p}",
               "channels": [
-                { "address": 0, "oncommand": ":DOA,{c},0,{A}", "offcommand": ":DOI,{c},0,{p}" }
+                { "address": 0, "oncommand": ":DOA,{c},0{A}", "offcommand": ":DOI,{c},0{A}" }
               ]
             }
           ]
         },
         {
-          "id": "ETH8020",
+          "id": "ETH8020 WIFI8020",
           "size": 20,
           "protocols": [
             {
               "id": "tcp",
               "statuscommand": "$",
-              "statuslength": 2,
-              "authenticationtoken": "",
+              "statuslength": 3,
+              "authenticationtoken": ",{p}",
               "channels": [
-                { "address": 0, "oncommand": ":DOA,{c},0,{A}", "offcommand": ":DOI,{c},0,{p}" }
+                { "address": 0, "oncommand": ":DOA,{c},0{A}", "offcommand": ":DOI,{c},0{A}" }
               ]
             }
           ]
