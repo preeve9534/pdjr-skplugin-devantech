@@ -195,9 +195,7 @@ The required __oncommand__ property introduces a string that should be transmitt
 
 The required __offcommand__ property introduces a string that should be transmitted to the device to turn the relay identified by __address__ OFF.
 
-Both __oncommand__ and __offcommand__ property values should be simple JSON formatted strings and can contain embedded escape sequences.
-Additionally, the the following wildcard tokens will be substituted
-with real values before string transmission.
+Both __oncommand__ and __offcommand__ property values can contain embedded JSON escape sequences. Additionally, the the following wildcard tokens will be substituted with apropri values before string transmission.
 
 | Token  | Replacement value                                                        |
 |:-------|:-------------------------------------------------------------------------|
@@ -257,6 +255,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNTg0ODA3NDQ3LC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTE1MDEzNTY2NDMsLTY3NzA4OTA3MywxND
+A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
