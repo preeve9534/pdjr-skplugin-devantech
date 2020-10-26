@@ -185,13 +185,11 @@ The required __statuslength__ property value specifies the number of bytes in th
 
 The optional __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating commands (see below). Some Devantech protocols require that a device password is decorated with some identifying character sequence and the format of that sequence can be specified here and will typically include the token {p} which will be interpolated with the password value specified in the __devicecstring__ property discussed previously.
  
-The required __channels__ array property introduces a list of channel definitions each of which specifies the commands required to operate a particular relay on the device being defined. Relays are identified by an ordinal address in the range 1..__size__ and each channel can be defined explicitly, but if there is a common format for commands that applies to all channels, then a pattern can be defined for a fake channel with address 0 and this will be elaborated for each of the real channels on the device.
+The required __channels__ array property introduces a list of channel definitions each of which specifies the commands required to operate a particular relay on the device being defined. Relays are identified by an ordinal address in the range 1..__size__ and each channel can be defined explicitly, but if there is a common format for commands that applies to all channels, then a pattern can be defined for a generic channel with address 0 and this will be elaborated for each of the real channels on the device.
 
 Each channel definition has the following properties.
 
-The __address__ property value gives the ordinal number of the relay
-channel that is being defined (or 0 for a generic definition).
-A value is required and the default is 0.
+The required __address__ property value gives the ordinal number of the relay channel that is being defined (or 0 for a generic definition). The value is defaults to 0.
 
 The __oncommand__ property introduces a string that should be
 transmitted to the device to turn the relay identified by __address__
@@ -264,6 +262,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTcwNDA1NDAyLC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTM3ODcwMDQyOCwtNjc3MDg5MDczLDE0MD
+g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
