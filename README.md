@@ -154,8 +154,8 @@ your system and you can skip to the *Module definitions* section.
 The __controlchannel__ property value introduces a configuration string
 which sets up the channel on which the plugin will listen for relay
 operating commands.
-The configuration string must consist of two, colon-delimited, fields
-*channel-type* f *channel-id*" with the following value
+The configuration string must have the form
+"*channel-type*__:__*channel-id*" with the following value
 constraints.
 
 | *channel-type*   | *channel-id*                                               |
@@ -413,5 +413,5 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODQ5OTY4NDg1LDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbMTQwODgzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
