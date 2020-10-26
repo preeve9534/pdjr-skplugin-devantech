@@ -233,8 +233,8 @@ You can make _signalk-devantech__ log a list of supported module product names b
 
 The plugin understands the following debug keys.
 
-| Key | Meaning                                                                                                   |
-|:-------------------|:-------------------------------------------------------------------------------------------|
+| Key     | Meaning |
+|:----|:-------------------------------------------------------------------------------------------|
 | devantech:\*      | Enable all keys.                                                                           | 
 | devantech:supporteddevices | Log each output action taken by the plugin.                                                |
 | devantech:modules   | Log each rule loaded by the plugin and indicate whether it was successfully parsed or not. |
@@ -246,6 +246,6 @@ The plugin understands the following debug keys.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTUzOTI2MTk1NiwtMTY1NDQ0NTU0NywtNj
+eyJoaXN0b3J5IjpbLTg2MjY4Njg1MSwtMTY1NDQ0NTU0NywtNj
 c3MDg5MDczLDE0MDg4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
