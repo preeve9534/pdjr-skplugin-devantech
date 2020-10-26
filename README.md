@@ -25,22 +25,13 @@ This discussion uses the term *device* to refer to a supported product available
 
 __signalk-devantech__ relies on a configuration file which:
 
-1. Identifies the control channel on which the plugin should listen
-   for relay operating *commands*.
+1. Identifies the control channel on which the plugin should listen for relay operating *commands*.
 
-2. Defines the devices the plugin is able to operate through a
-   collection of *device definitions* which enumerate the physical
-   characteristics of a device, its operating protocol and the commands
-   necessary to operate it.
+2. Defines the devices the plugin is able to operate through a collection of *device definitions* which enumerate the physical characteristics of a device, its operating protocol and the commands necessary to operate it.
 
-3. Specifies the modules which the user wishes the plugin to operate
-   through a collection of *module definitions* which identify the
-   module device type, map a Signal K channel onto each device relay
-   and name each channel for documentary and reporting purposes.
+3. Specifies the modules which the user wishes the plugin to operate through a collection of *module definitions* which identify the module device type, map a Signal K channel onto each device relay and name each channel for documentary and reporting purposes.
 
-The default configuration file includes an expandable set of
-device definitions for products in Devantech's USB, ESP, ETH and dS
-model ranges.
+The default configuration file includes an expandable set of device definitions for products in Devantech's USB, ETH and WImodel ranges.
 
 For each configured module, __signalk-devantech__ performs three
 distinct tasks: firstly, it builds a Signal K path for each module
@@ -371,6 +362,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyODM3NzQxNTcsMTQwODgzNDgzMCwxNz
+eyJoaXN0b3J5IjpbLTE2ODI4OTI5NzIsMTQwODgzNDgzMCwxNz
 Q2MjU0NzZdfQ==
 -->
