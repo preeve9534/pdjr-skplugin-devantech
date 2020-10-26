@@ -238,14 +238,14 @@ The plugin understands the following debug keys.
 | devantech:\* | Enable all keys. | 
 | devantech:supporteddevices | Log a list all supported devices (when the plugin starts). |
 | devantech:modules | Log a list all configured modules and their activation status (when the plugin starts). |
-| devantech:controlevents | Log commands received on the control channe. |
-| devantech:operatingevents |
+| devantech:controlevents | Log commands received on the control channel. |
+| devantech:operatingevents | Log events occurring on the module communication channels (commands a
 
 ## Author
 
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQ4ODAxNTM2NCwtMTY1NDQ0NTU0NywtNj
+eyJoaXN0b3J5IjpbLTk1MDk2NjEzMiwtMTY1NDQ0NTU0NywtNj
 c3MDg5MDczLDE0MDg4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
