@@ -106,19 +106,11 @@ The required __controlchannel__ property value introduces a configuration string
 
 The property value defaults to "notification:notifications.switchlogic.command".
 
-The __switchpath__ property value specifies a pattern for the Signal K
-paths that will be used by the plugin to represent its configured relay
-modules.
-The default value of "electrical.switches.bank.{m}.{c}" can probably be
-left untouched, but if you need to change it, then any path you supply
-must include the tokens '{m}' and '{c}' as placeholders which the
-plugin will interpolate with module-id and channel-id values for each
-connected module.
+The required __switchpath__ property value specifies a pattern for the Signal K paths that will be used by the plugin to represent its configured relay modules. The default value of "electrical.switches.bank.{m}.{c}" can probably be left untouched, but if you need to change it, then any path you supply must include the tokens '{m}' and '{c}' as placeholders which the plugin will interpolate with module-id and channel-id values for each connected module.
 
 ### Module definitions
 
-The __modules__ property value is an array of module definitions each
-of which describes a relay device you wish the plugin to operate. For example:
+The __modules__ property value is an array of module definitions each of which describes a relay device you wish the plugin to operate. For example:
 ```
     "modules": [
       {
@@ -148,9 +140,7 @@ of which describes a relay device you wish the plugin to operate. For example:
 
 Each module definition has the following properties.
 
-The __id__ property value must supply a unique identifier for the module
-being defined. This value will be used as part of the Signal K path
-used to report relay states (by replacing the '{m}' token in the
+The required __id__ property value must supply a unique identifier for the module being defined. This value will be used as part of the Signal K path used to report relay states (by replacing the '{m}' token in the
 __switchpath__ property value discussed above) and will also be used in
 status and error messaging.
 This value is required and has no default.
@@ -329,6 +319,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwMjMwNDA3OSwtNjc3MDg5MDczLDE0MD
-g4MzQ4MzAsMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbLTg1NTk5OTQxLC02NzcwODkwNzMsMTQwOD
+gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
