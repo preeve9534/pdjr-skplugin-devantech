@@ -205,7 +205,7 @@ of which describes a relay device you wish the plugin to operate. For example:
 
 Each module definition has the following properties.
 
-The _id_ property value must supply a unique identifier for the module
+The __id__ property value must supply a unique identifier for the module
 being defined. This value will be used as part of the Signal K path
 used to report relay states (by replacing the '{m}' token in the
 __switchpath__ property value discussed above) and will also be used in
@@ -411,6 +411,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzMTg1OTI0MTgsMTQwODgzNDgzMCwxNz
-Q2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTU3Mjk0MDMxMiwxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
