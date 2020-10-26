@@ -197,14 +197,14 @@ The required __offcommand__ property introduces a string that should be transmit
 
 Both __oncommand__ and __offcommand__ property values can contain embedded JSON escape sequences. Additionally, the the following wildcard tokens will be substituted with appropriate values before string transmission.
 
-| Token  | Replacement value                                                        |
-|:-------|:-------------------------------------------------------------------------|
+| Token  | Replacement value  |
+|:-------|:-------------------------|
 | {c}    | The ASCII encoded address of the channel being processed. |
 | {C}    | The binary encoded address of the channel being processed. |
 | {A}    | The value of any defined authentication token. | 
 | {p}    | The value of any defined module password. |
 
-The __statusmask__ property value can be used to introduce a number
+The optional __statusmask__ property value can be used to introduce a number
 that will be bitwise AND-ed with channel state reports received from
 the device so as to obtain a status value for the channel.
 If no value is supplied then the plugin will compute a mas value from
@@ -254,6 +254,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA1Nzg1MDUwLC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTc4NjExMzAsLTY3NzA4OTA3MywxNDA4OD
+M0ODMwLDE3NDYyNTQ3Nl19
 -->
