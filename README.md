@@ -53,7 +53,7 @@ A relay channel is operated by sending __signalk-devantech__ a string representa
 
 where *m* and *c* have the meaning discussed above and *s* is the value 0 or 1 (meaning OFF or ON respectively).
 
-The simplest way of delivering a *control-message* is to pass it in a notification in which case the message should be the value of the notification's description property.
+Within Signal K, the simplest way of delivering a *control-message* is via a notification stream and in this case the control message is should be the value of the notification's description property.
 
 When the plugin receives a control-message it attempts to convert it
 into a JSON object using the JSON.parse() function and then validates
@@ -342,6 +342,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyMTczNjE3NjYsMTQwODgzNDgzMCwxNz
-Q2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTM1MzQ0MDY1MywxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
