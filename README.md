@@ -170,17 +170,11 @@ The plugin installation includes device definitions for all of the Devantech rel
 
 Each device definition has the following properties.
 
-The required __id__ property value supplies string containing a list of space-separated identifiers, one for each of the devices to which the definition applies.
-Typically these identifiers should be the device manufacturer's model number.
-A value is required and there is no default.
+The required __id__ property value supplies string containing a list of space-separated identifiers, one for each of the devices to which the definition applies. Typically these identifiers should be the device manufacturer's model number.
 
-The __size__ property value specifies the number of relay channels
-supported by the device.
-A value is required and there is no default.
+The required __size__ property value specifies the number of relay channels supported by the device.
 
-The __protocols__ array property introduces a list of protocol
-definitions each of which defines a communication protocol supported by
-the device.
+The required __protocols__ array property introduces a list of protocol definitions each of which defines a communication protocol supported by the device.
 For most devices you will only need to specify one.
 Each protocol definition has the following properties.
 
@@ -295,6 +289,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3NzU0MTU4MCwtNjc3MDg5MDczLDE0MD
-g4MzQ4MzAsMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbLTE3MTQ3ODI2ODAsLTY3NzA4OTA3MywxND
+A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
