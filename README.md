@@ -93,7 +93,7 @@ The plugin configuration file has the following general structure.
 }
 ```
 
-If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [*Module definitions*](#module-definitions)  section.
+If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [Module definitions](#module-definitions)  section.
 
 ### Global properties
 
@@ -144,7 +144,7 @@ The required __id__ property value must supply a unique identifier for the modul
 
 The optional __description__ property value can be used to supply some documentary text. This value is optional and defaults to the empty string.
 
-The required __deviceid__ property value  a specific type of physical device is being used to implement this module by providing a device identifier (see the *Device definitions* section below for more detail).
+The required __deviceid__ property value identifies what type of physical device is being used to implement this module by providing a device identifier (see the [Device definitions](#device-definitions) section below for more detail).
 
 The required __devicecstring__ property value supplies a connection string that
 tells the plugin how to connect to the physical device. There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless devices).
@@ -311,6 +311,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQyOTg5MzIyNywtNjc3MDg5MDczLDE0MD
-g4MzQ4MzAsMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbLTE4MDEzNTE0MDcsLTY3NzA4OTA3MywxND
+A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
