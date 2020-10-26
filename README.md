@@ -8,27 +8,20 @@ The [Signal K data model](http://signalk.org/specification/1.0.0/doc/data_model.
 [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html) sections of the Signal K documentation may provide helpful orientation.
 
 __signalk-devantech__ implements a reporting and control interface for
-multi-channel relay devices manufactured by the UK company Devantech. The supplied configuration file includes definitions for most of the Devantech product range including devices that are operated over USB,
-WiFi and wired ethernet.
+multi-channel relay devices manufactured by the UK company Devantech. The supplied configuration file includes definitions for most of the Devantech product range including devices that are operated over USB, WiFi and wired ethernet.
 
 The plugin accepts relay operating commands over a *control channel*
 which can be either a Signal K notification path or a Unix domain
 socket (IPC).
 
 __signalk-devantech__ was designed to operate alongside the
-[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank#readme)
-plugin which implements a compatible and comprehensive control logic.
+[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank#readme) plugin which implements a compatible and comprehensive control logic.
 
-Devantech Ltd kindly supported the development of this plugin by making
-some of its relay devices available to the author for evaluation and
-testing.
+Devantech Ltd kindly supported the development of this plugin by making some of its relay devices available to the author for evaluation and testing.
 
 ## Overview
 
-This discussion uses the term *device* to refer to a supported product
-available from Devantech and *module* to refer to a specific *device*
-that has been installed by the user for operation by
-__signalk-devantech__.
+This discussion uses the term *device* to refer to a supported product available from Devantech and *module* to refer to a specific *device* that has been installed by the user for operation by __signalk-devantech__.
 
 __signalk-devantech__ relies on a configuration file which:
 
@@ -378,6 +371,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNTU2NjYxNTM5LDE0MDg4MzQ4MzAsMTc0Nj
-I1NDc2XX0=
+eyJoaXN0b3J5IjpbLTEyODM3NzQxNTcsMTQwODgzNDgzMCwxNz
+Q2MjU0NzZdfQ==
 -->
