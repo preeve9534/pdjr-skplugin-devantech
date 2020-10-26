@@ -227,8 +227,7 @@ __signalk-devantech__ supports relay modules manufactured by:
 
     Website: [www.robot-electronics.co.uk](https://www.robot-electronics.co.uk/)
 
-You can obtain a list of supported module product names by specifying the debug token "devantech:supporteThe following table lists the relay modules against which the plugin
-implementation was developed.
+You can obtain a list (in the Signal K log) of supported module product names by specifying the debug token "devantech:supporteddevices".
 
 |Relay module   |No of relays|Connection|Protocols|
 |:--------------|:----------:|:--------:|:-------:|
@@ -246,6 +245,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNDcwOTY5MTQ4LC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTMyNzUzOTA2MCwtNjc3MDg5MDczLDE0MD
+g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
