@@ -227,24 +227,13 @@ __signalk-devantech__ supports relay modules manufactured by:
 
     Website: [www.robot-electronics.co.uk](https://www.robot-electronics.co.uk/)
 
-You can obtain a list (in the Signal K log) of supported module product names by specifying the debug token "devantech:supporteddevices".
-
-|Relay module   |No of relays|Connection|Protocols|
-|:--------------|:----------:|:--------:|:-------:|
-|USB-RLY02-SN   |2           |USB       |usb      |
-|USB-RLY02      |2           |USB       |usb      |
-|USB-RLY08B     |8           |USB       |usb      |
-|USB-RLY82      |8           |USB       |usb      |
-|USB-RLY16      |16          |USB       |usb      |
-|USB-RLY16L     |16          |USB       |usb      |
-|USB-OPTO-RLY88 |8           |USB       |usb      |
-|USB-RLY816     |16          |USB       |usb      |
+You can make _signalk-devantech__ log a list of supported module product names by settinging the Signal K debug token "devantech:supporteddevices".
 
 ## Author
 
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTMyNzUzOTA2MCwtNjc3MDg5MDczLDE0MD
-g4MzQ4MzAsMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbLTE0MzM1OTgxNDgsLTY3NzA4OTA3MywxND
+A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
