@@ -72,14 +72,10 @@ The plugin can also be obtained from the  [project homepage](https://github.com/
 
 ## Configuration
 
-__signalk-devantech__ can be configured from within the Signal K
-console by navigating to _Server->Plugin config_ and selecting the
-_Devantech interface_ tab.
-If you prefer, the configuration file ```devantech.json``` can be
-edited directly using a text editor.
+__signalk-devantech__ can be configured from within the Signal K console by navigating to _Server->Plugin config_ and selecting the _Devantech interface_ tab.
+If you prefer, the configuration file ```devantech.json``` can be edited directly using a text editor.
 
 The plugin configuration file has the following general structure.
-
 ```
 {
   "enabled": false,
@@ -97,9 +93,7 @@ The plugin configuration file has the following general structure.
 }
 ```
 
-If you are using a relay module from Devantech, then most likely the
-only configuration required will be to define the modules connected to
-your system and you can skip to the *Module definitions* section.
+If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [*Module definitions*]( section.
 
 ### Global properties
 
@@ -338,6 +332,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3Njc2NDkzNywxNDA4ODM0ODMwLDE3ND
-YyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTExMTY0MzgxNzUsMTQwODgzNDgzMCwxNz
+Q2MjU0NzZdfQ==
 -->
