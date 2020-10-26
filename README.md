@@ -183,15 +183,9 @@ transmitted to the device to elicit a status report.
 
 The required __statuslength__ property value specifies the number of bytes in the status report message transmitted by the device in response to a status command. The value defaults to 1.
 
-The __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating commands (see below). Some Devantech protocols require that a device password is decorated with some identifying character sequence and the format of that sequence can be specified here and will typically include the token {p} which will be interpolated with the password value specified in the __devicecstring__ property discussed previously.
+The optional __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating commands (see below). Some Devantech protocols require that a device password is decorated with some identifying character sequence and the format of that sequence can be specified here and will typically include the token {p} which will be interpolated with the password value specified in the __devicecstring__ property discussed previously.
  
-For example, TCP access to Devantech ETH and WIFI devices can be password protected and passwords are introduced into commands by preceeding them
-with a 'y' character giving an authentication token format of 'y{p}'.
-A value is optional and there is no default.
-
-The __channels__ array property introduces a list of channel
-definitions each of which specifies the commands required to operate a
-particular relay on the device.
+The required __channels__ array property introduces a list of channel definitions each of which specifies the commands required to operate a particular relay on the device .
 Relays are identified by an ordinal address in the range 1..__size__
 and each channel can be defined explicitly, but if there is a common
 format for commands that applies to all channels, then a pattern can be
@@ -275,6 +269,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTI2ODkzNzgsLTY3NzA4OTA3MywxNDA4OD
-M0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbMTg4ODkwMTUxMCwtNjc3MDg5MDczLDE0MD
+g4MzQ4MzAsMTc0NjI1NDc2XX0=
 -->
