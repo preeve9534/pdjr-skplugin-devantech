@@ -227,10 +227,7 @@ There are two styles of value: one describes a USB connection and the other an e
 A USB connection string has the form "__usb:__*device-path*" where
 *device-path* specifies the serial device representing the physical
 port to which the associated device is connected.
-Not all Linux distributions build their serial device paths in the same
-way - you can usually find the device path assigned to a USB connection
-by examining the contents of the ```/dev/``` directory before and after
-plugging in the USB device.
+A typical value for __devicecstring__ might be "usb:/dev/ttyACM0"
 
 An ethernet connection string has the form
 
@@ -406,6 +403,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQ2NDQ2NjM0NCwxNDA4ODM0ODMwLDE3ND
-YyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTIwNzEzOTA3MDksMTQwODgzNDgzMCwxNz
+Q2MjU0NzZdfQ==
 -->
