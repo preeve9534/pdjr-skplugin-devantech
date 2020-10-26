@@ -61,16 +61,14 @@ When the plugin receives a control-message it attempts to convert it into a JSON
 
 __signalk-devantech__ has no special installation requirements.
 
-If you intend using a Devantech relay device fo
+If you intend using a Devantech relay device from the ETH or WIFI ranges then you must configure the device on your network before attempting to use it with this plugin.
 
 ## Installation
 
 Download and install __signalk-devantech__ using the _Appstore_ link in your
 Signal K Node server console.
-The plugin can also be obtained from the 
-[project homepage](https://github.com/preeve9534/signalk-devantech)
-and installed using
-[these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
+
+The plugin can also be obtained from the  [project homepage](https://github.com/preeve9534/signalk-devantech) and installed using [these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
 
 ## Configuration
 
@@ -340,6 +338,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwNDY0ODk4NTQsMTQwODgzNDgzMCwxNz
-Q2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbLTE3Njc2NDkzNywxNDA4ODM0ODMwLDE3ND
+YyNTQ3Nl19
 -->
