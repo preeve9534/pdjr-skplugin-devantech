@@ -189,18 +189,13 @@ The required __channels__ array property introduces a list of channel definition
 
 Each channel definition has the following properties.
 
-The required __address__ property value gives the ordinal number of the relay channel that is being defined (or 0 for a generic definition). The value is defaults to 0.
+The required __address__ property value gives the ordinal number of the relay channel that is being defined (or 0 for a generic definition).
 
-The __oncommand__ property introduces a string that should be
-transmitted to the device to turn the relay identified by __address__
-ON.
+The required __oncommand__ property introduces a string that should be transmitted to the device to turn the relay identified by __address__ ON.
 
-The __offcommand__ property introduces a string that should be
-transmitted to the device to turn the relay identified by __address__
-OFF.
+The required __offcommand__ property introduces a string that should be transmitted to the device to turn the relay identified by __address__ OFF.
 
-Both __oncommand__ and __offcommand__ property values should be simple
-JSON formatted strings and can contain embedded escape sequences.
+Both __oncommand__ and __offcommand__ property values should be simple JSON formatted strings and can contain embedded escape sequences.
 Additionally, the the following wildcard tokens will be substituted
 with real values before string transmission.
 
@@ -262,6 +257,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTM3ODcwMDQyOCwtNjc3MDg5MDczLDE0MD
-g4MzQ4MzAsMTc0NjI1NDc2XX0=
+eyJoaXN0b3J5IjpbNTg0ODA3NDQ3LC02NzcwODkwNzMsMTQwOD
+gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
