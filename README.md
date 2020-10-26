@@ -154,8 +154,7 @@ your system and you can skip to the *Module definitions* section.
 The __controlchannel__ property value introduces a configuration string
 which sets up the channel on which the plugin will listen for relay
 operating commands.
-The configuration string must have the form "*channel-type*__:__*channel-id*"
-with the following value constraints.
+The configuration string must have the form "*channel-type*__:__*channel-id*" with the following value constraints.
 
 | *channel-type*   | *channel-id*                                               |
 |:-----------------|:-----------------------------------------------------------|
@@ -168,9 +167,9 @@ The __switchpath__ property value specifies a pattern for the Signal K
 paths that will be used by the plugin to represent its configured relay
 modules.
 The default value of "electrical.switches.bank.{m}.{c}" can probably be
-left untouched, but if yo need to change it, then any path you supply
+left untouched, but if you need to change it, then any path you supply
 must include the tokens '{m}' and '{c}' as placeholders which the
-plugin will interpolate with module id and channel id values for each
+plugin will interpolate with module-id and channel-id values for each
 connected module.
 
 ### Module definitions
@@ -412,6 +411,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwMjg2NTc4NzgsMTQwODgzNDgzMCwxNz
+eyJoaXN0b3J5IjpbLTEwMDk5NTQzNjMsMTQwODgzNDgzMCwxNz
 Q2MjU0NzZdfQ==
 -->
