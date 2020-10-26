@@ -243,8 +243,7 @@ each of which describes a relay channel.
 The required __index__ property defines the relay module channel to which the channel definition relates. This value is used by the plugin to overwrite the '{c}' token in the __switchpath__ property discussed earlier and is also used in status and error reporting.
 
 The optional __address__ property value defines the physical channel on the remote device with which this channel is associated.
-By default this values wi
-Usually, it is sensible  to make the __index__ property value match the address of the corresponding relay channel on the selected device, but if this doesn't suit (maybe a physical relay has failed), then the __address__ property can be used to map a module channel index onto a different relay channel on the associated physical device.
+If this property is omitted, then the pBy default this value will assume the value of the __index__ property, but if this doesn't suit (maybe a physical relay has failed), then supply  __address__ property can be used to map a module channel index onto a different relay channel on the associated physical device.
 
  
 The __description__ property value supplies some narrative that is
@@ -393,6 +392,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTgzNTAyOTQ3MiwxNDA4ODM0ODMwLDE3ND
+eyJoaXN0b3J5IjpbMTA3Mjc1MjU3NywxNDA4ODM0ODMwLDE3ND
 YyNTQ3Nl19
 -->
