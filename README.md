@@ -185,9 +185,7 @@ The required __statuslength__ property value specifies the number of bytes in th
 
 The __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating commands (see below). Some Devantech protocols require that a device password is decorated with some identifying character sequence and the format of that sequence can be specified here and will typically include the token {p} which will be interpolated with the password value specified in the __devicecstring__ property discussed previously.
  
-tokens.
-For example, one of the Devantech TCP protocols can be password
-protected and passwords are introduced into commands by preceeding them
+For example, TCP access to Devantech ETH and WIFI devices can be password protected and passwords are introduced into commands by preceeding them
 with a 'y' character giving an authentication token format of 'y{p}'.
 A value is optional and there is no default.
 
@@ -277,6 +275,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzY1MDk5MzQ0LC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbMTI2ODkzNzgsLTY3NzA4OTA3MywxNDA4OD
+M0ODMwLDE3NDYyNTQ3Nl19
 -->
