@@ -204,19 +204,11 @@ Both __oncommand__ and __offcommand__ property values can contain embedded JSON 
 | {A}    | The value of any defined authentication token. | 
 | {p}    | The value of any defined module password. |
 
-The optional __statusmask__ property value can be used to introduce a number
-that will be bitwise AND-ed with channel state reports received from
-the device so as to obtain a status value for the channel.
-If no value is supplied then the plugin will compute a mas value from
-the channel __address__ using the formula (1 << (*address* - 1)).
-Not requires and the internal default is the computed value.
+The optional __statusmask__ property value can be used to introduce a number that will be bitwise AND-ed with channel state reports received from the device so as to obtain a state value for the channel. If no value is supplied then the plugin will compute a mask value from the channel __address__ using the formula (1 << (*address* - 1)).
 
 ## Usage
 
 __signalk-devantech__ has no special run-time usage requirement.
-
-You can monitor the plugin's manipulation of the Signal K data tree by
-reviewing the server state model in a web browser.
 
 Status and error messages are written to the Signal K server logs.
 
@@ -254,6 +246,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTc4NjExMzAsLTY3NzA4OTA3MywxNDA4OD
-M0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbMTEzODQ5Njc0LC02NzcwODkwNzMsMTQwOD
+gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
