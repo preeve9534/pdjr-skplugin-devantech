@@ -1,22 +1,14 @@
 # signalk-devantech
 
-Signal K interface to the
-[Devantech](https://www.devantech.co.uk)
-range of general purpose relay modules.
+Signal K interface to the [Devantech](https://www.devantech.co.uk) range of general purpose relay modules.
 
-This project implements a plugin for the
-[Signal K Node server](https://github.com/SignalK/signalk-server-node).
+This project implements a plugin for the [Signal K Node server](https://github.com/SignalK/signalk-server-node).
 
-The
-[Signal K data model](http://signalk.org/specification/1.0.0/doc/data_model.html)
-and
-[Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
-sections of the Signal K documentation may provide helpful orientation.
+The [Signal K data model](http://signalk.org/specification/1.0.0/doc/data_model.html) and
+[Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html) sections of the Signal K documentation may provide helpful orientation.
 
 __signalk-devantech__ implements a reporting and control interface for
-multi-channel relay devices manufactured by the UK company Devantech.
-The supplied configuration file includes definitions for most of the
-Devantech product range including devices that are operated over USB,
+multi-channel relay devices manufactured by the UK company Devantech. The supplied configuration file includes definitions for most of the Devantech product range including devices that are operated over USB,
 WiFi and wired ethernet.
 
 The plugin accepts relay operating commands over a *control channel*
@@ -229,11 +221,7 @@ A USB connection string has the form "__usb:__*device-path*" where
 port to which the associated device is connected.
 A typical value for a USB __devicecstring__ might be "usb:/dev/ttyACM0".
 
-An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated
-device, *port* is the port number on which it provides service and
-*password* is the optional password required to operate the device.
-All of these values are defined when you configure the Devantech
-relay bank for first use: consult the appropriate Devantech user guide for more information. 
+An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated device, *port* is the port number on which it provides service and *password* is the optional password required to operate the device. All of these values are defined when you configure the Devantech relay bank for first use: consult the appropriate Devantech user guide for more information. 
 
 A connection string must be specified and has no default.
 
@@ -390,6 +378,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTY4MjIyMjg5MSwxNDA4ODM0ODMwLDE3ND
-YyNTQ3Nl19
+eyJoaXN0b3J5IjpbNTU2NjYxNTM5LDE0MDg4MzQ4MzAsMTc0Nj
+I1NDc2XX0=
 -->
