@@ -199,10 +199,10 @@ Both __oncommand__ and __offcommand__ property values can contain embedded JSON 
 
 | Token  | Replacement value                                                        |
 |:-------|:-------------------------------------------------------------------------|
-| {c}    | The ASCII encoded address of the channel being processed.                |
-| {C}    | The binary encoded address of the channel being processed.               |
-| {A}    | The value of any defined authentication token (after interpolation of any contained {p}). | 
-| {p}    | The value of any defined module password.                                |
+| {c}    | The ASCII encoded address of the channel being processed. |
+| {C}    | The binary encoded address of the channel being processed. |
+| {A}    | The value of any defined authentication token. | 
+| {p}    | The value of any defined module password. |
 
 The __statusmask__ property value can be used to introduce a number
 that will be bitwise AND-ed with channel state reports received from
@@ -254,6 +254,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODI0NjYxOTUzLC02NzcwODkwNzMsMTQwOD
+eyJoaXN0b3J5IjpbMTA1Nzg1MDUwLC02NzcwODkwNzMsMTQwOD
 gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
