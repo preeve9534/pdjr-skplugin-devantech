@@ -174,8 +174,7 @@ The required __id__ property value supplies string containing a list of space-se
 
 The required __size__ property value specifies the number of relay channels supported by the device.
 
-The required __protocols__ array property introduces a list of protocol definitions each of which defines a communication protocol supported by the device.
-For most devices you will only need to specify one.
+The required __protocols__ array property introduces a list of protocol definitions each of which defines a communication protocol supported by the device (usually you will only need to specify one protocol).
 Each protocol definition has the following properties.
 
 The __id__ property value specifies the protocol type being defined and
@@ -289,6 +288,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3MTQ3ODI2ODAsLTY3NzA4OTA3MywxND
-A4ODM0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbODA5ODk1MTQzLC02NzcwODkwNzMsMTQwOD
+gzNDgzMCwxNzQ2MjU0NzZdfQ==
 -->
