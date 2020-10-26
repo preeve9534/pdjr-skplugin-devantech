@@ -221,8 +221,8 @@ is being used to implement this module by providing a device identifier (see the
 This value is required and has no default.
 
 The __devicecstring__ property value supplies a connection string that
-tells the plugin how to connect to the relay module.
-Devantech supply devices that can connect by USB and ethernet, and each
+tells the plugin how to connect to the physical device.
+There are two styles of value: one describes Devantech supply devices that can connect by USB and ethernet, and each
 type of connection implies a different style of connection string.
 
 A USB connection string has the form
@@ -410,6 +410,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5NDEyOTE4NSwxNDA4ODM0ODMwLDE3ND
+eyJoaXN0b3J5IjpbLTkxNzU1NDU2NSwxNDA4ODM0ODMwLDE3ND
 YyNTQ3Nl19
 -->
