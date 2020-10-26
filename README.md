@@ -181,12 +181,9 @@ The required __id__ property value specifies the protocol type being defined and
 The required __statuscommand__ property value supplies the string that must be
 transmitted to the device to elicit a status report.
 
-The required __statuslength__ property value defines the number of bytes in the
-status report message transmitted by the device in response to a status command.
-A value is required and the default is 1.
+The required __statuslength__ property value specifies the number of bytes in the status report message transmitted by the device in response to a status command. The value defaults to 1.
 
-The __authenticationtoken__ property value specifies the format for an
-authentication token '{A}' which can be used when defining operating
+The __authenticationtoken__ property value specifies the format for an authentication token '{A}' which can be used when defining operating
 commands (see below).
 Some Devantech protocols require that a device password is accompanied
 by some identifying character sequence and the format of that sequence
@@ -283,6 +280,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5MDM5MTUzMzgsLTY3NzA4OTA3MywxND
+eyJoaXN0b3J5IjpbLTEyNDU5NTQzNTQsLTY3NzA4OTA3MywxND
 A4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
