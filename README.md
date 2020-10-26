@@ -55,13 +55,13 @@ where *m* and *c* have the meaning discussed above and *s* is the value 0 or 1 (
 
 Within Signal K, the simplest way of delivering a *control-message* is via a notification stream and in this case the control message is passed as the value of a notification's description property.
 
-When the plugin receives a control-message it attempts to convert it into a JSON object using the JSON.parse() function and then validatesthe request against its configuration.
-If all is good it immediately issues an appropriate operating command
-to the module selected by *m*.
+When the plugin receives a control-message it attempts to convert it into a JSON object using the JSON.parse() function and then validates the request against its configuration. If all is good it immediately issues an appropriate operating command to the module selected by *m*.
 
 ## System requirements
 
 __signalk-devantech__ has no special installation requirements.
+
+If you intend using a Devantech relay device fo
 
 ## Installation
 
@@ -340,6 +340,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyNTUxMzExMTMsMTQwODgzNDgzMCwxNz
+eyJoaXN0b3J5IjpbLTIwNDY0ODk4NTQsMTQwODgzNDgzMCwxNz
 Q2MjU0NzZdfQ==
 -->
