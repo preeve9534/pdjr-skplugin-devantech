@@ -140,16 +140,11 @@ The __modules__ property value is an array of module definitions each of which d
 
 Each module definition has the following properties.
 
-The required __id__ property value must supply a unique identifier for the module being defined. This value will be used as part of the Signal K path used to report relay states (by replacing the '{m}' token in the
-__switchpath__ property value discussed above) and will also be used in
-status and error messaging.
-This value is required and has no default.
+The required __id__ property value must supply a unique identifier for the module being defined. This value will be used as part of the Signal K path used to report relay states (by replacing the '{m}' token in the __switchpath__ property value discussed above) and will also be used in status and error messaging.
 
-The __description__ property value can be used to supply some
-documentary text.
-This value is optional and defaults to the empty string.
+The optional __description__ property value can be used to supply some documentary text. This value is optional and defaults to the empty string.
 
-The __deviceid__ property value specifies what type of physical device
+The required __deviceid__ property value specifies what type of physical device
 is being used to implement this module by providing a device identifier (see the *Device definitions* section below for more detail).
 This value is required and has no default.
 
@@ -319,6 +314,6 @@ implementation was developed.
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTg1NTk5OTQxLC02NzcwODkwNzMsMTQwOD
-gzNDgzMCwxNzQ2MjU0NzZdfQ==
+eyJoaXN0b3J5IjpbMzc3MTk1NzcsLTY3NzA4OTA3MywxNDA4OD
+M0ODMwLDE3NDYyNTQ3Nl19
 -->
