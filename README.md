@@ -237,13 +237,15 @@ The plugin understands the following debug keys.
 |:-------------------|:-------------------------------------------------------------------------------------------|
 | devantech:\*      | Enable all keys.                                                                           | 
 | devantech:supporteddevices | Log each output action taken by the plugin.                                                |
-| switchbank:rules   | Log each rule loaded by the plugin and indicate whether it was successfully parsed or not. |
+| devantech:modules   | Log each rule loaded by the plugin and indicate whether it was successfully parsed or not. |
+| devantech:transmitted |
+| devantech:received |
 
 ## Author
 
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5MDQzNjAzNzIsLTE2NTQ0NDU1NDcsLT
-Y3NzA4OTA3MywxNDA4ODM0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTgwMzg5MTQsLTE2NTQ0NDU1NDcsLTY3Nz
+A4OTA3MywxNDA4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
