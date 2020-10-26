@@ -229,13 +229,21 @@ __signalk-devantech__ supports relay modules manufactured by:
 
 You can make _signalk-devantech__ log a list of supported module product names by setting the Signal K debug token "devantech:supporteddevices".
 
-## Debug tokens
+## Debugging and logging
+
+The plugin understands the following debug keys.
+
+| Key | Meaning                                                                                                   |
+|:-------------------|:-------------------------------------------------------------------------------------------|
+| devantech:\*      | Enable all keys.                                                                           | 
+| devantech:supporteddevices | Log each output action taken by the plugin.                                                |
+| switchbank:rules   | Log each rule loaded by the plugin and indicate whether it was successfully parsed or not. |
 
 ## Author
 
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2NTQ0NDU1NDcsLTY3NzA4OTA3MywxND
-A4ODM0ODMwLDE3NDYyNTQ3Nl19
+eyJoaXN0b3J5IjpbLTE5MDQzNjAzNzIsLTE2NTQ0NDU1NDcsLT
+Y3NzA4OTA3MywxNDA4ODM0ODMwLDE3NDYyNTQ3Nl19
 -->
