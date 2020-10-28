@@ -1,11 +1,6 @@
 {
   "type": "object",
   "properties": {
-    "controlchannel": {
-      "title": "Plugin control channel",
-      "type": "string",
-      "default": "notification:notifications.switchlogic.commands"
-    },
     "switchpath": {
       "title": "Switchbank path",
       "type": "string",

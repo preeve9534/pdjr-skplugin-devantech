@@ -14,6 +14,7 @@
  * permissions and limitations under the License.
  */
 
+const bacon = require('baconjs');
 const Log = require("./lib/signalk-liblog/Log.js");
 const DebugLog = require("./lib/signalk-liblog/DebugLog.js");
 const Schema = require("./lib/signalk-libschema/Schema.js");
@@ -21,6 +22,7 @@ const SerialPort = require('./node_modules/serialport');
 const ByteLength = require('./node_modules/@serialport/parser-byte-length')
 const net = require('net');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 const PLUGIN_SCHEMA_FILE = __dirname + "/schema.json";
 const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
@@ -35,7 +37,8 @@ module.exports = function(app) {
   plugin.description = "Devantech relay module interface.";
 
   const log = new Log(plugin.id, { "ncallback": app.setPluginStatus, "ecallback": app.setPluginError });
-  const debuglog = new DebugLog(plugin.id, DEBUG_KEYS);
+  const debug = new DebugLog(plugin.id, DEBUG_KEYS);
+  const xx = app.debug.extend("xx");
 
   plugin.schema = function() {
     var schema = Schema.createSchema(PLUGIN_SCHEMA_FILE);
@@ -48,7 +51,8 @@ module.exports = function(app) {
   }
 
   plugin.start = function(options) {
-    debuglog.N("*", "the following keys are available: %s", debuglog.getKeys().join(", "));
+    debug.N("*", "the following keys are available: %s", debug.getKeys().join(", "));
+    xx("HELLO");
 
     /******************************************************************
      * Filter the module definitions in <options.modules>, eliminating
@@ -91,19 +95,19 @@ module.exports = function(app) {
 
         connectModule(module, {
           onerror: (err) => {
-            debuglog.N("comms", "module %s: %s communication error (%s)", module.id, module.cobject.protocol, err);
+            debug.N("comms", "module %s: %s communication error (%s)", module.id, module.cobject.protocol, err);
           },
           onopen: (module) => { 
-            debuglog.N("comms", "module %s: port %s open", module.id, module.cobject.device); 
+            debug.N("comms", "module %s: port %s open", module.id, module.cobject.device); 
             if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
           },
           ondata: (module, buffer) => {
-            debuglog.N("comms", "module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
+            debug.N("comms", "module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
             var stateUpdates = getStateUpdates(module, buffer, options.switchpath);
             if (stateUpdates) app.handleMessage(plugin.id, makeDelta(plugin.id, stateUpdates));
           },
           onclose: (module) => {
-            debuglog.N("comms", "module %s: %s port closed", module.id, module.cobject.protocol); 
+            debug.N("comms", "module %s: %s port closed", module.id, module.cobject.protocol); 
           }
         });
       });
@@ -112,56 +116,62 @@ module.exports = function(app) {
        * Subscribe to the control path and process commands
        */
 
-      var controlchannel = options.controlchannel.match(/^(.+)\:(.+)$/);
-      if (controlchannel) {
-        switch (controlchannel[1]) {
-          case "notification":
-            var stream = app.streambundle.getSelfStream(controlchannel[2]);
-            if (stream) {
-              log.N("listening on control channel %s", options.controlchannel);
-              unsubscribes.push(stream.skipDuplicates().onValue(notification => {
-                var command = JSON.parse(notification.description);
-                if (command) {
-                  if (command.moduleid !== undefined) {
-                    var module = options.modules.reduce((a,m) => ((m.id == command.moduleid)?m:a), null);
-                    if (module !== null) {
-                      if (command.channelid !== undefined) {
-                        if (command.state !== undefined) {
-                          debuglog.N("commands", "received command %s", JSON.stringify(command));
-                          var relaycommand = getCommand(module, command.channelid, command.state);
-                          if (relaycommand) {
-                            module.connection.stream.write(relaycommand);
-                            debuglog.N("commands", "transmitted operating command (%s) for module %s, channel %s", relaycommand, command.moduleid, command.channelid);
-                            if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
-                          } else {
-                            log.E("cannot recover operating command for module %s, channel %s", module.id, command.channelid);
-                          }
-                        } else {
-                          log.E("ignoring command: state property is undefined");
-                        }
-                      } else {
-                        log.E("ignoring command: channelid property is undefined");
-                      }
-                    }
-                  } else {
-                    log.E("ignoring command: moduleid property is undefined");
-                  }
-                } else {
-                  log.E("command could not be parsed");
-                }
-              }));
-            } else {
-              log.E("unable to attach to control channel (%s)", options.controlchannel);
-            }
-            break;
-          case "ipc":
-          default:
-            log.E("unimplemented control channel %s", options.controlchannel);
-            break;
+      //var controlPaths = options.modules.reduce((a,m) => a.concat(m.channels.map(ch => "electrical.switches.bank." + m.id + "." + ch.index)), []);
+      //controlPaths.forEach(path => {
+
+
+        //console.log(path);
+      //});
+
+      var context = "vessels.self";
+      var path = "electrical.switches.bank.usb0.1";
+      app.registerPutHandler(context, path, handler, plugin.id);
+
+      var putdelta = {
+        "context": context,
+        "correlationId": uuidv4(),
+        "put": {
+          "source": plugin.id,
+          "path": "electrical.switches.bank.usb0.1",
+          "value": 1
         }
-      } else {
-        log.E("bad control channel specification %s", options.controlchannel);
-      }
+      };
+
+      app.handleMessage(plugin.id, putdelta);
+
+
+/*
+      var controlStreams = controlPaths.map(path => app.streambundle.getSelfStream(path).skipDuplicates());
+      var controlStream = bacon.mergeAll(controlStreams);
+
+      unsubscribes.push(controlStream.onValue(v => {
+        debug.N("commands", "received command %o", v);
+        if (v.moduleid !== undefined) {
+          var module = options.modules.reduce((a,m) => ((m.id == v.moduleid)?m:a), null);
+          if (module !== null) {
+            if (v.channelid !== undefined) {
+              if (v.state !== undefined) {
+                debug.N("commands", "received command %o", v);
+                var relaycommand = getCommand(module, v.channelid, v.state);
+                if (relaycommand) {
+                  module.connection.stream.write(relaycommand);
+                  debug.N("commands", "transmitted operating command (%s) for module %s, channel %s", relaycommand, v.moduleid, v.channelid);
+                  if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
+                } else {
+                  log.E("cannot recover operating command for module %s, channel %s", v.moduleid, v.channelid);
+                }
+              } else {
+                log.E("ignoring command: state property is undefined");
+              }
+            } else {
+              log.E("ignoring command: channelid property is undefined");
+            }
+          }
+        } else {
+          log.E("ignoring command: moduleid property is undefined");
+        }
+      }));
+*/
     } else {
       log.W("there are no usable module definitions.");
     }
@@ -170,6 +180,11 @@ module.exports = function(app) {
   plugin.stop = function() {
     unsubscribes.forEach(f => f());
     unsubscribes = [];
+  }
+
+  function handler(context, path, value, callback) {
+    console.log("handler ====> %o", value);
+    return({ state: 'COMPLETED', statusCode: 200 });
   }
 
   /********************************************************************
