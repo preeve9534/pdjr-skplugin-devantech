@@ -14,9 +14,7 @@
  * permissions and limitations under the License.
  */
 
-const bacon = require('baconjs');
 const Log = require("./lib/signalk-liblog/Log.js");
-const DebugLog = require("./lib/signalk-liblog/DebugLog.js");
 const Schema = require("./lib/signalk-libschema/Schema.js");
 const SerialPort = require('./node_modules/serialport');
 const ByteLength = require('./node_modules/@serialport/parser-byte-length')
@@ -26,7 +24,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const PLUGIN_SCHEMA_FILE = __dirname + "/schema.json";
 const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
-const DEBUG_KEYS = [ "devices", "state", "commands" ];
 
 module.exports = function(app) {
   var plugin = {};
@@ -34,11 +31,10 @@ module.exports = function(app) {
 
   plugin.id = "devantech";
   plugin.name = "Devantech interface";
-  plugin.description = "Devantech relay module interface.";
+  plugin.description = "Signal K interface to the Devantech range of general-purpose relay modules.";
+  plugin.options = null;
 
   const log = new Log(plugin.id, { "ncallback": app.setPluginStatus, "ecallback": app.setPluginError });
-  const debug = new DebugLog(plugin.id, DEBUG_KEYS);
-  const xx = app.debug.extend("xx");
 
   plugin.schema = function() {
     var schema = Schema.createSchema(PLUGIN_SCHEMA_FILE);
@@ -51,8 +47,7 @@ module.exports = function(app) {
   }
 
   plugin.start = function(options) {
-    debug.N("*", "the following keys are available: %s", debug.getKeys().join(", "));
-    xx("HELLO");
+    plugin.options = options;
 
     /******************************************************************
      * Filter the module definitions in <options.modules>, eliminating
@@ -60,8 +55,8 @@ module.exports = function(app) {
      * those which cannot be made usable by validateModule().
      */
 
-    options.modules = options.modules.reduce((a,m)  => {
-      try { a.push(validateModule(m, options)); } catch(e) { log.E(e); }
+    plugin.options.modules = plugin.options.modules.reduce((a,m)  => {
+      try { a.push(validateModule(m, plugin.options)); } catch(e) { log.E(e); }
       return(a);
     }, []);
 
@@ -69,8 +64,8 @@ module.exports = function(app) {
      * So now we have a, possibly empty, list of valid modules.
      */
 
-    if (options.modules.length) {
-      //log.N("connecting to %s relay module%s.", options.modules.length, ((options.modules.length == 1)?"":"s"));
+    if (plugin.options.modules.length) {
+      log.N("connecting to %s", options.modules.map(m => m.id).join(", "));
 
       /****************************************************************
        * Iterate over each module, connecting it to its relay module
@@ -78,7 +73,7 @@ module.exports = function(app) {
        * to this common set of functions.
        */
 
-      options.modules.forEach(module => {
+      plugin.options.modules.forEach(module => {
 
         /******************************************************************
          * Harvest documentary data from the defined switchbanks and write
@@ -86,92 +81,36 @@ module.exports = function(app) {
          * specified switch channel paths.
          */
 
-        var flattenedChannels = options.modules.reduce((a,sb) => a.concat(sb.channels.map(ch => ({"instance": sb.id, "index": ch.index, "description": ch.description }))), []);
-        var deltas = flattenedChannels.map(c => ({
-          "path": options.switchpath.replace('{m}', c.instance).replace('{c}', c.index) + ".meta",
-          "value": { "name": c.description, "type": "relay" }
+        var deltas = module.channels.map(channel => ({
+          "path": plugin.options.switchpath.replace('{m}', module.id).replace('{c}', channel.index) + ".meta",
+          "value": { "name": channel.description, "type": "relay" }
         }));
         app.handleMessage(plugin.id, makeDelta(plugin.id, deltas));
 
         connectModule(module, {
           onerror: (err) => {
-            debug.N("comms", "module %s: %s communication error (%s)", module.id, module.cobject.protocol, err);
+            app.debug("module %s: %s communication error (%s)", module.id, module.cobject.protocol, err);
           },
           onopen: (module) => { 
-            debug.N("comms", "module %s: port %s open", module.id, module.cobject.device); 
+            // Once module is open, register an action handler for every channel path
+            // and issue a status request command.
+            app.debug("module %s: port %s open", module.id, module.cobject.device); 
+            module.channels.forEach(ch => {
+              var path = plugin.options.switchpath.replace('{m}', module.id).replace('{c}', ch.index) + ".state";
+              app.registerPutHandler('vessels.self', path, actionHandler, plugin.id);
+            });
             if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
           },
           ondata: (module, buffer) => {
-            debug.N("comms", "module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
-            var stateUpdates = getStateUpdates(module, buffer, options.switchpath);
+            app.debug("module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
+            var stateUpdates = getStateUpdates(module, buffer, plugin.options.switchpath);
             if (stateUpdates) app.handleMessage(plugin.id, makeDelta(plugin.id, stateUpdates));
           },
           onclose: (module) => {
-            debug.N("comms", "module %s: %s port closed", module.id, module.cobject.protocol); 
+            app.debug("module %s: %s port closed", module.id, module.cobject.protocol); 
           }
         });
       });
-
-      /****************************************************************
-       * Subscribe to the control path and process commands
-       */
-
-      //var controlPaths = options.modules.reduce((a,m) => a.concat(m.channels.map(ch => "electrical.switches.bank." + m.id + "." + ch.index)), []);
-      //controlPaths.forEach(path => {
-
-
-        //console.log(path);
-      //});
-
-      var context = "vessels.self";
-      var path = "electrical.switches.bank.usb0.1";
-      app.registerPutHandler(context, path, handler, plugin.id);
-
-      var putdelta = {
-        "context": context,
-        "correlationId": uuidv4(),
-        "put": {
-          "source": plugin.id,
-          "path": "electrical.switches.bank.usb0.1",
-          "value": 1
-        }
-      };
-
-      app.handleMessage(plugin.id, putdelta);
-
-
-/*
-      var controlStreams = controlPaths.map(path => app.streambundle.getSelfStream(path).skipDuplicates());
-      var controlStream = bacon.mergeAll(controlStreams);
-
-      unsubscribes.push(controlStream.onValue(v => {
-        debug.N("commands", "received command %o", v);
-        if (v.moduleid !== undefined) {
-          var module = options.modules.reduce((a,m) => ((m.id == v.moduleid)?m:a), null);
-          if (module !== null) {
-            if (v.channelid !== undefined) {
-              if (v.state !== undefined) {
-                debug.N("commands", "received command %o", v);
-                var relaycommand = getCommand(module, v.channelid, v.state);
-                if (relaycommand) {
-                  module.connection.stream.write(relaycommand);
-                  debug.N("commands", "transmitted operating command (%s) for module %s, channel %s", relaycommand, v.moduleid, v.channelid);
-                  if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
-                } else {
-                  log.E("cannot recover operating command for module %s, channel %s", v.moduleid, v.channelid);
-                }
-              } else {
-                log.E("ignoring command: state property is undefined");
-              }
-            } else {
-              log.E("ignoring command: channelid property is undefined");
-            }
-          }
-        } else {
-          log.E("ignoring command: moduleid property is undefined");
-        }
-      }));
-*/
     } else {
       log.W("there are no usable module definitions.");
     }
@@ -182,10 +121,31 @@ module.exports = function(app) {
     unsubscribes = [];
   }
 
-  function handler(context, path, value, callback) {
-    console.log("handler ====> %o", value);
+  function actionHandler(context, path, value, callback) {
+    var module = getModuleFromPath(path);
+    if (module) {
+      var relaycommand = getCommand(getModuleFromPath(path), getChannelIdFromPath(path), value);
+      if (relaycommand) {
+        module.connection.stream.write(relaycommand);
+        app.debug("transmitted operating command (%s) for module %s, channel %s", relaycommand, value.moduleid, value.channelid);
+        if (module.statuscommand !== undefined) module.connection.stream.write(module.statuscommand);
+      } else {
+        log.E("cannot recover operating command for module %s, channel %s", value.moduleid, value.channelid);
+      }
+    }
     return({ state: 'COMPLETED', statusCode: 200 });
   }
+
+  function getModuleFromPath(path) {
+    var parts = path.split('.') || [];
+    return(plugin.options.modules.reduce((a,m) => ((m.id == parts[3])?m:a), null));
+  }
+
+  function getChannelIdFromPath(path) {
+    var parts = path.split('.') || [];
+    return(parts[4]);
+  }
+
 
   /********************************************************************
    * Fettle up a module definition by normalising property values,

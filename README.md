@@ -1,150 +1,159 @@
 # signalk-devantech
 
-Signal K interface to the [Devantech](https://www.devantech.co.uk) range of general purpose relay modules.
+Signal K interface to the
+[Devantech](https://www.devantech.co.uk)
+range of general-purpose relay modules.
 
-This project implements a plugin for the [Signal K Node server](https://github.com/SignalK/signalk-server-node).
+This project implements a plugin for the
+[Signal K Node server](https://github.com/SignalK/signalk-server-node).
 
-The [Signal K data model](http://signalk.org/specification/1.0.0/doc/data_model.html) and
-[Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html) sections of the Signal K documentation may provide helpful orientation.
+The
+[Signal K data model](http://signalk.org/specification/1.0.0/doc/data_model.html)
+and
+[Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
+sections of the Signal K documentation may provide helpful orientation.
 
 __signalk-devantech__ implements a reporting and control interface for
-multi-channel relay devices manufactured by the UK company Devantech. The supplied configuration file includes definitions for most of the Devantech product range including devices that are operated over USB, WiFi and wired ethernet.
-
-The plugin accepts relay operating commands over a *control channel*
-which can be either a Signal K notification path or a Unix domain
-socket (IPC).
+multi-channel relay devices manufactured by the UK company Devantech.
+The supplied configuration file includes definitions for most of the
+Devantech product range including devices that are operated over USB,
+WiFi and wired ethernet.
 
 __signalk-devantech__ was designed to operate alongside the
-[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank#readme) plugin which implements a compatible and comprehensive control logic.
+[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank#readme)
+plugin which implements a compatible and comprehensive control logic.
 
-Devantech Ltd kindly supported the development of this plugin by making some of its relay devices available to the author for evaluation and testing.
+Devantech Ltd kindly supported the development of this plugin by making
+some of its relay devices available to the author for evaluation and
+testing.
 
 ## Overview
 
-This discussion uses the term *device* to refer to a supported product available from Devantech and *module* to refer to a specific *device* that has been installed by the user for operation by __signalk-devantech__.
+This discussion uses the term *device* to refer to a supported product
+available from Devantech and *module* to refer to a specific *device*
+that has been installed by the user for operation by
+__signalk-devantech__.
 
 __signalk-devantech__ relies on a configuration file which:
 
-1. Identifies the control channel on which the plugin should listen for relay operating *commands*.
+1. Defines the devices the plugin is able to operate through a
+collection of *device definitions* which enumerate the physicals
+ characteristics of a device, its operating protocol and the
+commands necessary to operate it.
 
-2. Defines the devices the plugin is able to operate through a collection of *device definitions* which enumerate the physical characteristics of a device, its operating protocol and the commands necessary to operate it.
+2. Specifies the modules which the user wishes the plugin to
+operate through a collection of *module definitions* which identify the
+device implimenting each module, map a Signal K channel onto each
+device relay and name each channel for documentary and reporting
+purposes.
 
-3. Specifies the modules which the user wishes the plugin to operate through a collection of *module definitions* which identify the module device type, map a Signal K channel onto each device relay and name each channel for documentary and reporting purposes.
+The default configuration file includes an expandable set of device
+definitions for products in Devantech's USB, ETH and WIFI model ranges.
 
-The default configuration file includes an expandable set of device definitions for products in Devantech's USB, ETH and WIFI model ranges.
-
-For each configured module, __signalk-devantech__ performs three distinct tasks: firstly, it builds a Signal K path for each module channel and decorates the path with some documentary meta data; secondly it maintains state information for each path which reflects the current relay state; and finally it accepts commands from the plugin control channel and uses these to operate relays on attached devices.
+For each configured module, __signalk-devantech__ builds a Signal K
+path for each relay channel, decorates the path with some documentary
+meta data and then operates the channel.
+The plugin maintains state information for each path which reflects
+the current relay state; and accepts Signal K put requests in order to
+operate relays on attached devices.
 
 ### Signal K data paths and meta information
 
-By default, a relay device is represented in Signal K by a collection of paths with the general pattern 'electrical.switches.bank.*m*.*c*', where *m* is an arbitrary module identifier and *c* is a natural number indexing a channel within a module. This structure echoes the Signal K representation of NMEA switch banks.
+By default, a relay device is represented in Signal K by a collection
+of paths with the general pattern 'electrical.switches.bank.*m*.*c*',
+where *m* is an arbitrary module identifier and *c* is a natural number
+indexing a channel within a module.s
+This structure echoes the Signal K representation of NMEA switch banks.
 
-When __signalk-devantech__ first starts it creates appropriate Signal K paths from module definitions in its configuration file and adds meta property to each path describing the relay bank channel.
+When __signalk-devantech__ first starts it creates appropriate Signal K
+paths from module definitions in its configuration file and adds meta
+property to each path describing the relay bank channel.
 
 ### Relay state information
 
-The state value of each Signal K path is set when the module starts and after each relay update operation. State values in Signal K are only ever set from device status reports and hence should always reflect the actual physical state of each relay.
+The state value of each Signal K path is set when the module starts and
+after each relay update operation.
+State values in Signal K are only ever set from device status reports
+and hence should always reflect the actual physical state of eachs
+relay.
 
-### Command processing
+### Operating a relay
  
-A relay channel is operated by sending __signalk-devantech__ a string representation of a JSON *control-message* of the form:
-
-    { "moduleid": "*m*", "channelid": *c*, "state": s }
-
-where *m* and *c* have the meaning discussed above and *s* is the value 0 or 1 (meaning OFF or ON respectively).
-
-Within Signal K, the simplest way of delivering a *control-message* is via a notification stream and in this case the control message is passed as the value of a notification's description property.
-
-When the plugin receives a control-message it attempts to convert it into a JSON object using the JSON.parse() function and then validates the request against its configuration. If all is good it immediately issues an appropriate operating command to the module selected by *m*.
+__signalk-devantech__ intercepts PUT requests for state changes on
+channel paths associated with its configured modules and issues
+appropriate operating commands to the connected devices.
 
 ## System requirements
 
 __signalk-devantech__ has no special installation requirements.
 
-If you intend using a Devantech relay device from the ETH or WIFI ranges then you must configure the device on your network before attempting to use it with this plugin.
+If you intend using a Devantech relay device from the ETH or WIFI
+ranges then you must configure the device on your network before
+attempting to use it with this plugin.
 
 ## Installation
 
-Download and install __signalk-devantech__ using the _Appstore_ link in your
-Signal K Node server console.
+Download and install __signalk-devantech__ using the _Appstore_ link in
+your Signal K Node server console.
 
-The plugin can also be obtained from the  [project homepage](https://github.com/preeve9534/signalk-devantech) and installed using [these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
+The plugin can also be obtained from the
+[project homepage](https://github.com/preeve9534/signalk-devantech)
+and installed using
+[these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
 
 ## Configuration
 
-__signalk-devantech__ can be configured from within the Signal K console by navigating to _Server->Plugin config_ and selecting the _Devantech interface_ tab.
-If you prefer, the configuration file ```devantech.json``` can be edited directly using a text editor.
+__signalk-devantech__ can be configured from within the Signal K
+console by navigating to _Server->Plugin config_ and selecting the
+_Devantech interface_ tab.
+If you prefer, the configuration file ```devantech.json``` can be
+edited directly using a text editor.
 
-The plugin configuration file has the following general structure.
-```
-{
-  "enabled": false,
-  "enableLogging": false,
-  "properties": {
-    "controlchannel": "notification:notifications.switchlogic.command",
-    "switchpath": "electrical.switches.bank.{m}.{c}",
-    "modules": [
-      ** MODULE DEFINITIONS **
-    ],
-    "devices": [
-      ** DEVICE DEFINITIONS **
-    ]
-  }
-}
-```
-
-If you are using a relay module from Devantech, then most likely the only configuration required will be to define the modules connected to your system and you can skip to the [Module definitions](#module-definitions)  section.
+If you are using a relay module from Devantech, then most likely the
+only configuration required will be to define the modules connected to
+your system and in this case you can skip to the
+[Module definitions](#module-definitions)
+section.
 
 ### Global properties
 
-The required __controlchannel__ property value introduces a configuration string which sets up the channel on which the plugin will listen for relay operating commands. The configuration string must have the form "*channel-type*__:__*channel-id*" with the following value constraints.
+__Switch path template__ [switchpath]\
+This required string property specifies a pattern for the Signal K
+paths that will be used by the plugin to represent its configured
+relay modules.
 
-| *channel-type*   | *channel-id*                                               |
-|:-----------------|:-----------------------------------------------------------|
-| __notification__ | A path in the Signal K "notifications...." tree.           |
-| __ipc__          | The pathname of a Unix domain socket.                      |
-
-The property value defaults to "notification:notifications.switchlogic.command".
-
-The required __switchpath__ property value specifies a pattern for the Signal K paths that will be used by the plugin to represent its configured relay modules. The default value of "electrical.switches.bank.{m}.{c}" can probably be left untouched, but if you need to change it, then any path you supply must include the tokens '{m}' and '{c}' as placeholders which the plugin will interpolate with module-id and channel-id values for each connected module.
+The default value of 'electrical.switches.bank.{m}.{c}' can probably
+be left untouched, but if you need to change it, then any path you
+supply must include the tokens '{m}' and '{c}' as placeholders which
+the plugin will interpolate with module-id and channel-id values for
+each connected module.
 
 ### Module definitions
 
-The __modules__ property value is an array of module definitions each of which describes a relay device you wish the plugin to operate. For example:
-```
-    "modules": [
-      {
-        "id": "eth0",
-        "description": "ETH484 evaluation module #223-1677",
-        "deviceid": "ETH484",
-        "devicecstring": "tcp:password@192.168.1.190:17494",
-        "channels": [
-          { "index": 1, "description": "ETH relay 1" },
-          { "index": 2, "description": "ETH relay 2" },
-          { "index": 3, "description": "ETH relay 3" },
-          { "index": 4, "description": "ETH relay 4" }
-        ]
-      }
-      {
-        "id": "usb0",
-        "description": "USB-RLY02 evaluation module #117-556",
-        "deviceid": "USB-RLY02",
-        "devicecstring": "usb:/dev/ttyACM0",
-        "channels": [
-          { "index": 1, "description": "USB Relay 1" },
-          { "index": 2, "description": "USB Relay 2" }
-        ]
-      }
-    ]
-```
+__Module definitions__ [modules]\
+This array property consists of a collection of module definitions each
+of which describes a relay device you wish the plugin to operate.
 
 Each module definition has the following properties.
 
-The required __id__ property value must supply a unique identifier for the module being defined. This value will be used as part of the Signal K path used to report relay states (by replacing the '{m}' token in the __switchpath__ property value discussed above) and will also be used in status and error messaging.
+__Module identifier__ [id]\
+This required string property must supply a unique identifier for the
+module being defined.
+This value will be used as part of the Signal K path used to report
+relay states (by replacing the '{m}' token in the __switchpath__
+property discussed above) and will also be used in status and error
+messaging.
 
-The optional __description__ property value can be used to supply some documentary text. This value is optional and defaults to the empty string.
+__Module description__ [description]\
+This optional string property can be used to supply some documentary
+text.
 
-The required __deviceid__ property value supplies an identifier which selects a specific device definition appropriate to the physical device is being used to implement this module. See the [Device definitions](#device-definitions) section below for more detail.
+__Device type__ [deviceid]\
+This required string  property supplies an identifier which selects a
+specific device definition appropriate to the physical device that is
+being used to implement this module.
+See the [Device definitions](#device-definitions) section below fors
+ more detail.
 
 The required __devicecstring__ property value supplies a connection string that
 tells the plugin how to connect to the physical device. There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless devices).

@@ -1,7 +1,7 @@
 {
   "name": "signalk-devantech",
   "version": "1.0.0",
-  "description": "Signal K interface to Devantech range of general purpose relay modules.",
+  "description": "Signal K interface to the Devantech range of general-purpose relay modules.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/preeve9534/signalk-devantech#readme",
   "dependencies": {
+    "baconjs": "^3.0.16",
     "serialport": "^8.0.8",
     "sprintf-js": "^1.1.2",
     "uuid": "^8.3.1"
