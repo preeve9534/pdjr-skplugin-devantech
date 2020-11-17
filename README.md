@@ -13,15 +13,14 @@ and
 [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
 sections of the Signal K documentation may provide helpful orientation.
 
-__signalk-devantech__ implements a reporting and control interface for
-multi-channel relay devices manufactured by the UK company Devantech.
-The supplied configuration file includes definitions for most of the
-Devantech product range including devices that are operated over USB,
-WiFi and wired ethernet.
+__signalk-devantech__ implements a control interface for multi-channel
+relay devices manufactured by the UK company Devantech and includes support
+for devices that are operated over USB, WiFi and wired ethernet.
 
-__signalk-devantech__ was designed to operate alongside the
-[signalk-switchbank](https://github.com/preeve9534/signalk-switchbank#readme)
-plugin which implements a compatible and comprehensive control logic.
+The plugin operates by intercepting Signal K PUT requests addressed to
+switch bank paths under its control.
+Valid requests are translated into relay module operating commands
+which are sent to the appropriate connected device.
 
 Devantech Ltd kindly supported the development of this plugin by making
 some of its relay devices available to the author for evaluation and
@@ -101,26 +100,21 @@ The plugin can also be obtained from the
 and installed using
 [these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
 
-## Configuration
+## Using the plugin
 
-__signalk-devantech__ can be configured from within the Signal K
-console by navigating to _Server->Plugin config_ and selecting the
-_Devantech interface_ tab.
-If you prefer, the configuration file ```devantech.json``` can be
-edited directly using a text editor.
+__signalk-devantech__ operates autonomously but must be configured
+before use.
 
 If you are using a relay module from Devantech, then most likely the
 only configuration required will be to define the modules connected to
-your system and in this case you can skip to the
-[Module definitions](#module-definitions)
-section.
+your system.
 
-### Global properties
+The configuration includes the following properties.
 
 __Switch path template__ [switchpath]\
 This required string property specifies a pattern for the Signal K
-paths that will be used by the plugin to represent its configured
-relay modules.
+keys that will be used by the plugin to represent its configured
+relay module channels.
 
 The default value of 'electrical.switches.bank.{m}.{c}' can probably
 be left untouched, but if you need to change it, then any path you
@@ -128,19 +122,18 @@ supply must include the tokens '{m}' and '{c}' as placeholders which
 the plugin will interpolate with module-id and channel-id values for
 each connected module.
 
-### Module definitions
-
 __Module definitions__ [modules]\
-This array property consists of a collection of module definitions each
-of which describes a relay device you wish the plugin to operate.
+This array property consists of a collection of *module definitions*
+each of which describes a particular relay device you wish the plugin
+to operate.
 
 Each module definition has the following properties.
 
 __Module identifier__ [id]\
 This required string property must supply a unique identifier for the
 module being defined.
-This value will be used as part of the Signal K path used to report
-relay states (by replacing the '{m}' token in the __switchpath__
+This value will be used as part of the Signal K path used to identify
+each relay channel (by replacing the '{m}' token in the __switchpath__
 property discussed above) and will also be used in status and error
 messaging.
 
@@ -148,40 +141,82 @@ __Module description__ [description]\
 This optional string property can be used to supply some documentary
 text.
 
-__Device type__ [deviceid]\
+__Module device type__ [deviceid]\
 This required string  property supplies an identifier which selects a
-specific device definition appropriate to the physical device that is
+specific device definition appropriate to the particular device that is
 being used to implement this module.
-See the [Device definitions](#device-definitions) section below fors
- more detail.
+See the [Device definitions](#device-definitions) section below for
+more detail.
 
-The required __devicecstring__ property value supplies a connection string that
-tells the plugin how to connect to the physical device. There are two styles of value: one describes a USB connection and the other an ethernet connection (supporting Devantech's wired and wireless devices).
+__Module connection string__ [devicecstring]\
+This required string value supplies a connection string that tells the
+plugin how to connect to the physical device implementing this module.
 
-A USB connection string has the form "__usb:__*device-path*" where *device-path* specifies the serial device representing the physical port to which the associated device is connected. A typical value for a USB __devicecstring__ might be "usb:/dev/ttyACM0".
+There are two styles of value: one describes a USB connection and the
+other an ethernet connection (supporting both wired and wireless
+devices).
 
-An ethernet connection string has the form   "__eth:__[*password*__@__]*address*__:__*port*" where *address* is the IP address or hostname assigned to the associated device, *port* is the port number on which it provides service and *password* is the optional password required to operate the device. A typical value for an ethernet __devicecstring__ might be "eth:letmein@192.168.0.20:14555". These values you should use when constructing this string are defined when you configure a Devantech ETH or WIFI relay device for first use: consult your user guide for more information. 
+A USB connection string has the form '__usb:__*device-path*' where
+*device-path* specifies the serial device representing the physical
+port to which the associated device is connected.
+A typical value for a USB __devicecstring__ might be 'usb:/dev/ttyACM0'.
 
-The __channels__ property introduces an array of channel definitions each of which describes a relay bank channel.
+An ethernet connection string has the form   '__eth:__[*password*__@__]*address*__:__*port*'
+where *address* is the IP address or hostname assigned to the associated
+device, *port* is the port number on which it provides service and
+*password* is the optional password required to operate the device.
+A typical value for an ethernet __devicecstring__ might be 'eth:letmein@192.168.0.20:14555'.
+The values you should use when constructing this string are defined
+when you configure a Devantech ETH or WIFI relay device for first use:
+consult your user guide for more information. 
 
-The required __index__ property defines the relay module channel to which the channel definition relates. This value is used by the plugin to overwrite the '{c}' token in the __switchpath__ property discussed earlier and is also used in status and error reporting.
+__Module channels__ [channels]\
+This array property introduces a collection of *channel definitions* each
+of which describes one of the module's a relay bank channels using the
+following properties.
 
-The optional __address__ property value defines the physical channel on the remote device with which this channel is associated. If this property is omitted, then the plugin will use the value of the __index__ property as the channel address.
+__Channel index__ [index]
+This number property defines the relay module channel to which the channel
+definition relates, supplying the value that Signal K will use to identify
+the associated relay.
+This value is used by the plugin to overwrite the '{c}' token in the
+__switchpath__ property discussed earlier and is also used in status and
+error reporting.
+
+__Channel address__ [address]\
+This optional number property defines the physical channel on the remote
+device with which this channel is associated.
+If this property is omitted, then the plugin will use the value of the
+__index__ property as the channel address.
  
-The __description__ property value supplies some narrative that is used in status and error reporting and, more importantly, is used to decorate the module switch bank channel with meta information that can be picked up by other Signal K processes.
+__Channel description__ [description]\
+This optional string property supplies some narrative that is used to
+decorate the associated Signal K key's meta property with information
+that can be picked up by other Signal K processes.
 
-### Device definitions
+__Device definitions__ [devices]\
+This array property defines an array of *device definitions*, each of
+which describes the physical and interfacing characteristics of a
+supported relay device.
 
-The __devices__ property defines an array of *device definitions*, each of which describes the physical and interfacing characteristics of a supported relay device.
-A device must be defined here before it can be configured for use in a module definition.
-
-The plugin installation includes device definitions for all of the Devantech relay modules that were available at the time of release, but if you need to add an unsupported device, then read-on...
+A device must be defined here before it can be configured for use in a
+module definition.
+The plugin installation includes device definitions for Devantech relay
+modules that were usable in the Signal K context and that were available
+at the time of release.
+If you need to add an unsupported device, then read-on.
 
 Each device definition has the following properties.
 
-The required __id__ property value supplies string containing a list of space-separated identifiers, one for each of the devices to which the definition applies. Typically these identifiers should be the device manufacturer's model number.
+__Device ids__ [id]\
+This string property supplies a list of space-separated identifiers, one
+for each of the relay devices to which the definition applies.
+Typically these identifiers should be the model number assigned by the
+device manufacturer.
 
-The required __size__ property value specifies the number of relay channels supported by the device.
+__Number of relay channels__ [size]\
+This number property specifies the number of relay channels supported by
+the device.
 
 The required __protocols__ array property introduces a list of protocol definitions each of which defines a communication protocol supported by the device (usually you will only need to specify one protocol). Each protocol definition has the following properties.
 
