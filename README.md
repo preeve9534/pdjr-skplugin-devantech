@@ -14,10 +14,11 @@ and
 sections of the Signal K documentation may provide helpful orientation.
 
 __signalk-devantech__ implements a control interface for multi-channel
-relay devices manufactured by the UK company Devantech and includes support
-for devices that are operated over USB, WiFi and wired ethernet.
+relay devices manufactured by the UK company Devantech and includes
+support for devices that are operated over USB, WiFi and wired
+ethernet.
 
-The plugin operates by intercepting Signal K PUT requests addressed to
+The plugin operates by intercepting Signal K put requests addressed to
 switch bank paths under its control.
 Valid requests are translated into relay module operating commands
 which are sent to the appropriate connected device.
@@ -25,62 +26,6 @@ which are sent to the appropriate connected device.
 Devantech Ltd kindly supported the development of this plugin by making
 some of its relay devices available to the author for evaluation and
 testing.
-
-## Overview
-
-This discussion uses the term *device* to refer to a supported product
-available from Devantech and *module* to refer to a specific *device*
-that has been installed by the user for operation by
-__signalk-devantech__.
-
-__signalk-devantech__ relies on a configuration file which:
-
-1. Defines the devices the plugin is able to operate through a
-collection of *device definitions* which enumerate the physicals
- characteristics of a device, its operating protocol and the
-commands necessary to operate it.
-
-2. Specifies the modules which the user wishes the plugin to
-operate through a collection of *module definitions* which identify the
-device implimenting each module, map a Signal K channel onto each
-device relay and name each channel for documentary and reporting
-purposes.
-
-The default configuration file includes an expandable set of device
-definitions for products in Devantech's USB, ETH and WIFI model ranges.
-
-For each configured module, __signalk-devantech__ builds a Signal K
-path for each relay channel, decorates the path with some documentary
-meta data and then operates the channel.
-The plugin maintains state information for each path which reflects
-the current relay state; and accepts Signal K put requests in order to
-operate relays on attached devices.
-
-### Signal K data paths and meta information
-
-By default, a relay device is represented in Signal K by a collection
-of paths with the general pattern 'electrical.switches.bank.*m*.*c*',
-where *m* is an arbitrary module identifier and *c* is a natural number
-indexing a channel within a module.s
-This structure echoes the Signal K representation of NMEA switch banks.
-
-When __signalk-devantech__ first starts it creates appropriate Signal K
-paths from module definitions in its configuration file and adds meta
-property to each path describing the relay bank channel.
-
-### Relay state information
-
-The state value of each Signal K path is set when the module starts and
-after each relay update operation.
-State values in Signal K are only ever set from device status reports
-and hence should always reflect the actual physical state of eachs
-relay.
-
-### Operating a relay
- 
-__signalk-devantech__ intercepts PUT requests for state changes on
-channel paths associated with its configured modules and issues
-appropriate operating commands to the connected devices.
 
 ## System requirements
 
@@ -184,8 +129,8 @@ __switchpath__ property discussed earlier and is also used in status and
 error reporting.
 
 __Channel address__ [address]\
-This optional number property defines the physical channel on the remote
-device with which this channel is associated.
+This optional number property defines the physical channel on the
+remote device with which this channel is associated.
 If this property is omitted, then the plugin will use the value of the
 __index__ property as the channel address.
  
@@ -278,60 +223,43 @@ sequences.
 Additionally, the the following wildcard tokens will be substituted
 with appropriate values before string transmission.
 
-| Token  | Replacement value  |
-|:-------|:-------------------------|
-| {c}    | The ASCII encoded address of the channel being processed. |
-| {C}    | The binary encoded address of the channel being processed. |
-| {A}    | The value of any defined authentication token. | 
-| {p}    | The value of any defined module password. |
+| Token | Replacement value |
+|:------|:------------------|
+| {c}   | The ASCII encoded address of the channel being processed. |
+| {C}   | The binary encoded address of the channel being processed. |
+| {A}   | The value of any defined authentication token. | 
+| {p}   | The value of any defined module password. |
 
 __Channel status mask__ [statusmask]\
-This optional number property value can be used to introduce a value
-that will be bitwise AND-ed with state reports received from the device
+This optional number property can be used to introduce a value that
+will be bitwise AND-ed with state reports received from the device
 so as to obtain a state value for a channel.
 If no value is supplied then the plugin will compute a mask value from
 the channel [address] using the formula (1 << (*address* - 1)).
-
-## Usage
-
-__signalk-devantech__ has no special run-time usage requirement.
-
-Status and error messages are written to the Signal K server logs.
 
 ## Supported relay modules
 
 __signalk-devantech__ supports relay modules manufactured by:
 
-    Devantech Ltd\
-    Maurice Gaymer Road\
-    Attleborough\
-    NR17 2QZ\
-    England\
+Devantech Ltd\
+Maurice Gaymer Road\
+Attleborough\
+NR17 2QZ\
+England
 
-    Telephone: +44 (0)1953 457387\
-    Fax: +44 (0)1953 459793
+Telephone: +44 (0)1953 457387\
+Fax: +44 (0)1953 459793
 
-    Website: [www.robot-electronics.co.uk](https://www.robot-electronics.co.uk/)
+Website: [www.robot-electronics.co.uk](https://www.robot-electronics.co.uk/)
 
-You can make _signalk-devantech__ log a list of supported module product names by setting the Signal K debug token "devantech:supporteddevices".
+You can obtain a list of supported module ids by enabling the debug key
+and reviewing the Signal K log.
 
 ## Debugging and logging
 
-The plugin understands the following debug keys.
-
-| Key | Meaning |
-|:----|:--------|
-| devantech:\* | Enable all keys. | 
-| devantech:supporteddevices | Log a list all supported devices (when the plugin starts). |
-| devantech:modules | Log a list all configured modules and their activation status (when the plugin starts). |
-| devantech:commands | Log commands received on the control channel. |
-| devantech:operations | Log events occurring on the module communication channels (commands issued and state reports received).
+The plugin understands the 'devantech' debug key.
 
 ## Author
 
 Paul Reeve <preeve@pdjr.eu>\
 October 2020
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbMTM5NjEyNzEyMywtMTY1NDQ0NTU0NywtNj
-c3MDg5MDczLDE0MDg4MzQ4MzAsMTc0NjI1NDc2XX0=
--->

@@ -81,9 +81,15 @@ module.exports = function(app) {
          * specified switch channel paths.
          */
 
-        var deltas = module.channels.map(channel => ({
-          "path": plugin.options.switchpath.replace('{m}', module.id).replace('{c}', channel.index) + ".meta",
-          "value": { "name": channel.description, "type": "relay" }
+        var deltas = module.channels.map(c => ({
+          "path": plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".meta",
+          "value": {
+            "displayName": c.description,
+            "longName": c.description + " (bank " + c.instance + ", channel " + c.index + ")",
+            "shortName": "[" + c.instance + "," + c.index + "]",
+            "description": (c.type + " state (0=OFF, 1=ON)").trim(),
+            "type": c.type
+          }
         }));
         app.handleMessage(plugin.id, makeDelta(plugin.id, deltas));
 
