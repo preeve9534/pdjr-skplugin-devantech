@@ -81,17 +81,17 @@ module.exports = function(app) {
          * specified switch channel paths.
          */
 
-        var deltas = module.channels.map(c => ({
-          "path": plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".meta",
-          "value": {
+        module.channels.forEach(c => {
+          var metaPath = app.getPath("self") + "." + plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state";
+          var metaValue = {
             "displayName": c.description,
-            "longName": c.description + " (bank " + c.instance + ", channel " + c.index + ")",
-            "shortName": "[" + c.instance + "," + c.index + "]",
-            "description": (c.type + " state (0=OFF, 1=ON)").trim(),
+            "longName": c.description + " (bank " + module.id + ", channel " + c.index + ")",
+            "shortName": "[" + module.id + "," + c.index + "]",
+            "description": "Relay state (0=OFF, 1=ON)",
             "type": c.type
-          }
-        }));
-        app.handleMessage(plugin.id, makeDelta(plugin.id, deltas));
+          };
+          app.handleMessage(plugin.id, staticDelta(metaPath, "meta", metaValue));
+        });
 
         connectModule(module, {
           onerror: (err) => {
@@ -395,6 +395,13 @@ module.exports = function(app) {
         "timestamp": (new Date()).toISOString(),
         "values": pairs.map(p => { return({ "path": p.path, "value": p.value }); }) 
       }]
+    });
+  }
+
+  function staticDelta(fullpath, key, value) {
+    return({
+      "context": fullpath,
+      "updates": [ { "values": [ { "path": "", "value": { [key]: value } } ] } ] 
     });
   }
 
