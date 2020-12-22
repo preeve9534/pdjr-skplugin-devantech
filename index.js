@@ -14,6 +14,7 @@
  * permissions and limitations under the License.
  */
 
+const Delta = require("./lib/signalk-libdelta/Delta.js");
 const Log = require("./lib/signalk-liblog/Log.js");
 const Schema = require("./lib/signalk-libschema/Schema.js");
 const SerialPort = require('./node_modules/serialport');
@@ -35,6 +36,7 @@ module.exports = function(app) {
   plugin.options = null;
 
   const log = new Log(plugin.id, { "ncallback": app.setPluginStatus, "ecallback": app.setPluginError });
+  const delta = new Delta(app, plugin.id);
 
   plugin.schema = function() {
     var schema = Schema.createSchema(PLUGIN_SCHEMA_FILE);
@@ -82,16 +84,15 @@ module.exports = function(app) {
          */
 
         module.channels.forEach(c => {
-          var metaPath = app.getPath("self") + "." + plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state";
-          var metaValue = {
+          delta.addMeta(plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state", {
+            "description": "Relay state (0=OFF, 1=ON)",
             "displayName": c.description,
             "longName": c.description + " (bank " + module.id + ", channel " + c.index + ")",
             "shortName": "[" + module.id + "," + c.index + "]",
-            "description": "Relay state (0=OFF, 1=ON)",
             "type": c.type
-          };
-          app.handleMessage(plugin.id, staticDelta(metaPath, "meta", metaValue));
+          });
         });
+        delta.commit();
 
         connectModule(module, {
           onerror: (err) => {
@@ -109,8 +110,7 @@ module.exports = function(app) {
           },
           ondata: (module, buffer) => {
             app.debug("module %s: %s data received (%o)", module.id, module.cobject.protocol, buffer);
-            var stateUpdates = getStateUpdates(module, buffer, plugin.options.switchpath);
-            if (stateUpdates) app.handleMessage(plugin.id, makeDelta(plugin.id, stateUpdates));
+            (new Delta(app, plugin.id)).addValues(getStateUpdates(module, buffer, plugin.options.switchpath)).commit();
           },
           onclose: (module) => {
             app.debug("module %s: %s port closed", module.id, module.cobject.protocol); 
@@ -379,30 +379,6 @@ module.exports = function(app) {
       }
     }
     return(retval);
-  }
-
-  /********************************************************************
-   * Return a delta from <pairs> which can be a single value of the
-   * form { path, value } or an array of such values. <src> is the name
-   * of the process which will issue the delta update.
-   */
-
-  function makeDelta(src, pairs = []) {
-    pairs = (Array.isArray(pairs))?pairs:[pairs]; 
-    return({
-      "updates": [{
-        "source": { "type": "plugin", "src": src, },
-        "timestamp": (new Date()).toISOString(),
-        "values": pairs.map(p => { return({ "path": p.path, "value": p.value }); }) 
-      }]
-    });
-  }
-
-  function staticDelta(fullpath, key, value) {
-    return({
-      "context": fullpath,
-      "updates": [ { "values": [ { "path": "", "value": { [key]: value } } ] } ] 
-    });
   }
 
   return(plugin);
