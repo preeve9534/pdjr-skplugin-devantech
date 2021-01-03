@@ -25,6 +25,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const PLUGIN_SCHEMA_FILE = __dirname + "/schema.json";
 const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
+const PLUGIN_METADATA_KEY = "notifications.plugins.devantech.metadata";
 
 module.exports = function(app) {
   var plugin = {};
@@ -36,7 +37,6 @@ module.exports = function(app) {
   plugin.options = null;
 
   const log = new Log(plugin.id, { "ncallback": app.setPluginStatus, "ecallback": app.setPluginError });
-  const delta = new Delta(app, plugin.id);
 
   plugin.schema = function() {
     var schema = Schema.createSchema(PLUGIN_SCHEMA_FILE);
@@ -69,6 +69,22 @@ module.exports = function(app) {
     if (plugin.options.modules.length) {
       log.N("connecting to %s", options.modules.map(m => m.id).join(", "));
 
+      var metadata = [];
+      plugin.options.modules.forEach(module => {
+        module.channels.forEach(c => {
+          metadata.push({
+            key: plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state",
+            description: "Relay state (0=OFF, 1=ON)",
+            displayName: c.description,
+            longName: c.description + " (bank " + module.id + ", channel " + c.index + ")",
+            shortName: "[" + module.id + "," + c.index + "]",
+            type: c.type
+          });
+        });
+      });
+      log.N("saving metadata to '%s' (%d items)", PLUGIN_METADATA_KEY, metadata.length);
+      (new Delta(app, plugin.id)).addValue(PLUGIN_METADATA_KEY, metadata).commit().clear();
+
       /****************************************************************
        * Iterate over each module, connecting it to its relay module
        * using whatever protocol is configured and arrange for callback
@@ -76,23 +92,6 @@ module.exports = function(app) {
        */
 
       plugin.options.modules.forEach(module => {
-
-        /******************************************************************
-         * Harvest documentary data from the defined switchbanks and write
-         * it to the Signal K tree as meta information for each of the
-         * specified switch channel paths.
-         */
-
-        module.channels.forEach(c => {
-          delta.addMeta(plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state", {
-            "description": "Relay state (0=OFF, 1=ON)",
-            "displayName": c.description,
-            "longName": c.description + " (bank " + module.id + ", channel " + c.index + ")",
-            "shortName": "[" + module.id + "," + c.index + "]",
-            "type": c.type
-          });
-        });
-        delta.commit();
 
         connectModule(module, {
           onerror: (err) => {
