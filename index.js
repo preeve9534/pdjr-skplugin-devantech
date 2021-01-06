@@ -31,9 +31,9 @@ module.exports = function(app) {
   var plugin = {};
   var unsubscribes = [];
 
-  plugin.id = "devantech";
-  plugin.name = "Devantech interface";
-  plugin.description = "Signal K interface to the Devantech range of general-purpose relay modules.";
+  plugin.id = "pdjr-skplugin-devantech";
+  plugin.name = "Devantech relay interface";
+  plugin.description = "Signal K interface to the Devantech range of general-purpose relay modules";
   plugin.options = null;
 
   const log = new Log(plugin.id, { "ncallback": app.setPluginStatus, "ecallback": app.setPluginError });

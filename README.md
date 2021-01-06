@@ -1,4 +1,4 @@
-# signalk-devantech
+# pdjr-skplugin-devantech
 
 Signal K interface to the
 [Devantech](https://www.devantech.co.uk)
@@ -13,7 +13,7 @@ and
 [Alarm, alert and notification handling](http://signalk.org/specification/1.0.0/doc/notifications.html)
 sections of the Signal K documentation may provide helpful orientation.
 
-__signalk-devantech__ implements a control interface for multi-channel
+__pdjr-skplugin-devantech__ implements a control interface for multi-channel
 relay devices manufactured by the UK company Devantech and includes
 support for devices that are operated over USB, WiFi and wired
 ethernet.
@@ -29,7 +29,7 @@ testing.
 
 ## System requirements
 
-__signalk-devantech__ has no special installation requirements.
+__pdjr-skplugin-devantech__ has no special installation requirements.
 
 If you intend using a Devantech relay device from the ETH or WIFI
 ranges then you must configure the device on your network before
@@ -37,17 +37,17 @@ attempting to use it with this plugin.
 
 ## Installation
 
-Download and install __signalk-devantech__ using the _Appstore_ link in
+Download and install __pdjr-skplugin-devantech__ using the _Appstore_ link in
 your Signal K Node server console.
 
 The plugin can also be obtained from the
-[project homepage](https://github.com/preeve9534/signalk-devantech)
+[project homepage](https://github.com/preeve9534/pdjr-skplugin-devantech)
 and installed using
 [these instructions](https://github.com/SignalK/signalk-server-node/blob/master/SERVERPLUGINS.md).
 
 ## Using the plugin
 
-__signalk-devantech__ operates autonomously but must be configured
+__pdjr-skplugin-devantech__ operates autonomously but must be configured
 before use.
 
 If you are using a relay module from Devantech, then most likely the
@@ -239,7 +239,7 @@ the channel [address] using the formula (1 << (*address* - 1)).
 
 ## Supported relay modules
 
-__signalk-devantech__ supports relay modules manufactured by:
+__pdjr-skplugin-devantech__ supports relay modules manufactured by:
 
 Devantech Ltd\
 Maurice Gaymer Road\
