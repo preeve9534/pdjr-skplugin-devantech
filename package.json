@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/preeve9534/pdjr-skplugin-devantech#readme",
   "dependencies": {
-    "baconjs": "^3.0.16",
+    "baconjs": "^1.0.1",
     "serialport": "^8.0.8",
     "sprintf-js": "^1.1.2",
     "uuid": "^8.3.1"

@@ -82,7 +82,6 @@ module.exports = function(app) {
           });
         });
       });
-      log.N("saving metadata to '%s' (%d items)", PLUGIN_METADATA_KEY, metadata.length);
       (new Delta(app, plugin.id)).addValue(PLUGIN_METADATA_KEY, metadata).commit().clear();
 
       /****************************************************************
