@@ -25,7 +25,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const PLUGIN_SCHEMA_FILE = __dirname + "/schema.json";
 const PLUGIN_UISCHEMA_FILE = __dirname + "/uischema.json";
-const PLUGIN_METADATA_KEY = "notifications.plugins.devantech.metadata";
 
 module.exports = function(app) {
   var plugin = {};
@@ -69,20 +68,35 @@ module.exports = function(app) {
     if (plugin.options.modules.length) {
       log.N("connecting to %s", options.modules.map(m => m.id).join(", "));
 
-      var metadata = [];
-      plugin.options.modules.forEach(module => {
-        module.channels.forEach(c => {
-          metadata.push({
-            key: plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state",
-            description: "Relay state (0=OFF, 1=ON)",
-            displayName: c.description,
-            longName: c.description + " (bank " + module.id + ", channel " + c.index + ")",
-            shortName: "[" + module.id + "," + c.index + "]",
-            type: c.type
+ 
+      if (options.metainjectorfifo) {
+        if (fs.existsSync(options.metainjectorfifo)) {
+          var metadata = [];
+          plugin.options.modules.forEach(module => {
+            module.channels.forEach(c => {
+              metadata.push({
+                key: plugin.options.switchpath.replace('{m}', module.id).replace('{c}', c.index) + ".state",
+                description: "Relay state (0=OFF, 1=ON)",
+                displayName: c.description,
+                longName: c.description + " (bank " + module.id + ", channel " + c.index + ")",
+                shortName: "[" + module.id + "," + c.index + "]",
+                type: c.type
+              });
+            });
           });
-        });
-      });
-      (new Delta(app, plugin.id)).addValue(PLUGIN_METADATA_KEY, metadata).commit().clear();
+          if (metadata.length) {
+            var client = new net.Socket();
+            client.connect(options.metainjectorfifo);
+            client.on('connect', () => {
+              log.N("sending %d metadata keys to injector service at '%s'", metadata.length, options.metainjectorfifo);
+              client.write(JSON.stringify(metadata));
+              client.end();
+            });
+          }
+        } else {
+          log.E("meta injector FIFO (%s) does not exist", options.metainjectorfifo);
+        }
+      }
 
       /****************************************************************
        * Iterate over each module, connecting it to its relay module

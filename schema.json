@@ -1,6 +1,11 @@
 {
   "type": "object",
   "properties": {
+    "metainjectorfifo": {
+      "title": "FIFO used by meta injector plugin",
+      "type": "string",
+      "default": "/tmp/meta-injector"
+    },
     "switchpath": {
       "title": "Switchbank path",
       "type": "string",
